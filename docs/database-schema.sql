@@ -1,4 +1,4 @@
--- Windinsight only: additive tables, no modifications to existing arena tables.
+-- windsight only: additive tables, no modifications to existing arena tables.
 create table if not exists public.windinsight_companies (
   user_id uuid primary key references auth.users(id) on delete cascade,
   profile jsonb not null default '{}'::jsonb,

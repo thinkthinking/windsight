@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import {
   countries,
   signals,
@@ -13,6 +19,7 @@ import {
 } from "@/lib/data";
 import { I, WindLogo, type IconName } from "./insight-icons";
 import { InsightMap } from "./insight-map";
+import capturedSearch from "@/docs/live-search-example.json";
 
 type View =
   | "overview"
@@ -43,6 +50,7 @@ type StrategyResult = {
   generatedAt?: string;
   mode?: string;
   notice?: string;
+  profileSnapshot?: Profile;
 };
 const navigation: {
   id: View;
@@ -142,6 +150,162 @@ const suggestionGroups = [
     tone: "green",
   },
 ];
+function ruleStrategy(profile: Profile): StrategyResult {
+  const markets = profile.markets.length
+    ? profile.markets.join("、")
+    : profile.headquarters;
+  const aggregation = /聚合|路由|开发者平台|跨境 AI/.test(
+    [profile.industry, ...profile.useCases, profile.description].join(" "),
+  );
+  const sensitive = profile.dataSensitivity !== "一般业务数据";
+  const privateDeploy = profile.deployment !== "公有云 API";
+  const recommendations = [
+    {
+      title: `建立面向${markets}的独立服务矩阵`,
+      detail: `以${profile.headquarters}注册实体和实际团队、客户、受益所有人信息逐项核查供应商服务资格。针对${markets}分别记录合同主体、服务地区、处理区域及终端用户限制；不能仅凭注册地推断可用性。`,
+      priority: "高",
+    },
+    {
+      title: sensitive
+        ? `为${profile.dataSensitivity}设置独立处理路径`
+        : "为一般业务数据建立最小化边界",
+      detail: sensitive
+        ? `在${profile.useCases.join("、") || "计划的 AI 场景"}中识别个人信息和商业秘密，先脱敏、限制日志留存，再核查跨境传输机制与供应商训练使用条款。`
+        : "仅传入业务必需字段，配置日志留存、访问控制和删除周期；若后续引入个人信息，重新开展数据与跨境评估。",
+      priority: sensitive ? "高" : "中",
+    },
+    {
+      title: privateDeploy
+        ? "评估区域化开放权重与混合部署"
+        : "为公有云 API 设计可切换方案",
+      detail: privateDeploy
+        ? `针对${profile.deployment}，优先评估区域内托管与自部署边界，比较 Qwen、DeepSeek、Mistral 等代表模型的实际许可、安全维护和算力成本。`
+        : "选择有适用服务区域与数据处理条款的供应商，保留替代模型并测试能力降级。迁移前复核许可、客户承诺和数据流变化。",
+      priority: "中",
+    },
+    ...(aggregation
+      ? [
+          {
+            title: "将模型路由资格与计费隔离落实到每次请求",
+            detail:
+              "建立租户、终端用户、来源地区和供应商资格校验；路由fallback仅在已获准的模型池内执行。向客户披露真实处理方、数据区域、日志策略及故障切换行为，避免把技术可调用等同于有权转售。",
+            priority: "高",
+          },
+        ]
+      : [
+          {
+            title: `为${profile.industry}制定场景上线门槛`,
+            detail: `针对${profile.useCases.join("、") || "业务场景"}建立人工复核、质量评测与回滚流程，先在低风险数据和有限用户中试点。`,
+            priority: "中",
+          },
+        ]),
+    ...(profile.markets.includes("欧盟")
+      ? [
+          {
+            title: "单独核查欧盟业务角色与责任",
+            detail:
+              "区分企业是模型使用者、系统提供者还是通用AI模型提供者，结合实际功能、客户与用途核对适用义务；不因采用开放权重而自动豁免。",
+            priority: "高",
+          },
+        ]
+      : []),
+  ];
+  const selectedModels = aiModels
+    .filter((m) =>
+      privateDeploy ? m.openness === "开放权重" : m.openness === "闭源",
+    )
+    .slice(0, 3);
+  const relevant = signals
+    .filter(
+      (signal) =>
+        signal.category === "市场准入" ||
+        (profile.markets.includes("欧盟") && signal.country === "EU") ||
+        (profile.markets.includes("中国") && signal.country === "CN") ||
+        signal.category === "技术模型",
+    )
+    .slice(0, 5);
+  return {
+    mode: "rules",
+    summary: `这是为${profile.name || "当前企业"}生成的本地规则演示：企业位于${profile.headquarters}，业务覆盖${markets}，计划采用${profile.deployment}处理${profile.dataSensitivity}。${aggregation ? "AI 聚合平台应优先核查供应商转售与终端用户资格，并建立按租户和区域隔离的路由策略。" : "建议先建立区域准入和场景上线门槛，再逐步扩大 AI 使用。"}这些方向依据已填写档案匹配，未调用实时 AI。`,
+    recommendations,
+    risks: [
+      {
+        title: "服务资格需复核",
+        detail:
+          "组织成员关系、公司注册地与服务器位置均不能单独证明供应商服务资格或免除法律义务。",
+        level: "高",
+      },
+      {
+        title: sensitive ? "敏感信息与跨境风险" : "业务边界变化",
+        detail: sensitive
+          ? "敏感数据、客户内容与调用日志可能流经多个处理方，必须确认完整数据链路。"
+          : "引入个人信息、监管行业客户或新的市场时，应重新评估控制措施。",
+        level: sensitive ? "高" : "中",
+      },
+    ],
+    models: selectedModels.map((m) => ({
+      name: m.name,
+      fit: `${m.openness} · ${m.deployment}`,
+      caution: m.considerations.join("；"),
+    })),
+    sources: relevant.map((signal) => ({
+      title: signal.title,
+      url: signal.sourceUrl,
+      date: signal.date,
+      sourceType: "official_snapshot",
+    })),
+    generatedAt: new Date().toISOString(),
+    profileSnapshot: { ...profile },
+    notice: "本地规则演示，未调用实时 AI；候选模型不代表已获得使用或转售资格。",
+  };
+}
+const featuredSignals = [
+  signals.find((s) => s.category === "市场准入"),
+  signals.find((s) => s.country === "EU" && s.category === "政策监管"),
+  signals.find((s) => s.category === "技术模型"),
+].filter((s): s is Signal => Boolean(s));
+const DEMO_PROFILE_KEY = "windsight-demo-profile-v1";
+const DEMO_REPORT_KEY = "windsight-demo-report-v1";
+function readDemoProfile(): Profile {
+  try {
+    const value = JSON.parse(localStorage.getItem(DEMO_PROFILE_KEY) || "null");
+    if (!value || typeof value !== "object" || typeof value.name !== "string")
+      return { ...exampleProfile };
+    const profile = { ...exampleProfile };
+    for (const key of [
+      "name",
+      "website",
+      "industry",
+      "headquarters",
+      "dataSensitivity",
+      "deployment",
+      "description",
+    ] as const)
+      if (typeof value[key] === "string")
+        profile[key] = value[key].slice(0, key === "description" ? 5000 : 300);
+    for (const key of ["markets", "useCases"] as const)
+      if (Array.isArray(value[key]))
+        profile[key] = value[key]
+          .filter((item: unknown) => typeof item === "string")
+          .slice(0, 20);
+    return profile;
+  } catch {
+    return { ...exampleProfile };
+  }
+}
+function readDemoReport(): StrategyResult | null {
+  try {
+    const report = JSON.parse(localStorage.getItem(DEMO_REPORT_KEY) || "null");
+    return report &&
+      report.mode === "rules" &&
+      typeof report.summary === "string" &&
+      Array.isArray(report.recommendations)
+      ? report
+      : null;
+  } catch {
+    return null;
+  }
+}
 function Badge({
   children,
   tone = "neutral",
@@ -164,7 +328,11 @@ function SourceLink({ href, children }: { href: string; children: ReactNode }) {
     </a>
   );
 }
-function normalizeSignals(items: unknown[], candidate = false): Signal[] {
+function normalizeSignals(
+  items: unknown[],
+  candidate = false,
+  snapshot = false,
+): Signal[] {
   return items
     .filter(
       (item): item is Record<string, unknown> =>
@@ -180,7 +348,11 @@ function normalizeSignals(items: unknown[], candidate = false): Signal[] {
         id: String(item.id || `live-${index}-${Date.now()}`),
         title: String(item.title || "待核实情报"),
         summary: String(item.summary || ""),
-        date: String(item.publishedAt || new Date().toISOString()).slice(0, 10),
+        date:
+          typeof item.publishedAt === "string" &&
+          !Number.isNaN(Date.parse(item.publishedAt))
+            ? item.publishedAt.slice(0, 10)
+            : "日期待核实",
         country: country?.code || "",
         countryName: country?.name || region,
         category: ([
@@ -195,15 +367,21 @@ function normalizeSignals(items: unknown[], candidate = false): Signal[] {
         impact: (["高", "中", "低"].includes(String(item.impact))
           ? String(item.impact)
           : "中") as Signal["impact"],
-        source: String(item.sourceName || "X / 联网检索"),
+        source:
+          String(item.sourceName || "X / 联网检索") +
+          (snapshot ? " · 已捕获快照" : ""),
         sourceUrl: String(item.sourceUrl || ""),
         tags: [
           String(item.organization || "全球 AI"),
           candidate ? "未核实候选" : "社交媒体信号",
+          ...(snapshot ? ["已捕获检索快照，非当前重新检索"] : []),
         ],
         status: "待核实",
         implication:
-          "此信息来自实时检索，尚未完成官方交叉核验。请查看原始来源，确认发布日期、适用区域和政策文本后再用于企业决策。",
+          (snapshot
+            ? "这是已捕获的历史检索快照，非当前重新检索。"
+            : "此信息来自实时检索。") +
+          "尚未完成官方交叉核验。请查看原始来源，确认发布日期、适用区域和政策文本后再用于企业决策。",
       };
     });
 }
@@ -242,6 +420,7 @@ async function request(path: string, body?: unknown) {
 }
 
 export function InsightApp() {
+  const sessionIdentity = useRef<string | null>(null);
   const [view, setView] = useState<View>("overview");
   const [selected, setSelected] = useState<Country>(
     () => countries.find((c) => c.code === "CN") || countries[0],
@@ -264,6 +443,7 @@ export function InsightApp() {
   const [toast, setToast] = useState("");
   const [strategy, setStrategy] = useState<StrategyResult | null>(null);
   const [strategyError, setStrategyError] = useState("");
+  const [restoredReport, setRestoredReport] = useState(false);
   const [liveSignals, setLiveSignals] = useState<Signal[]>([]);
   const [radarMessage, setRadarMessage] = useState("");
   const [modelFilter, setModelFilter] = useState("全部模型");
@@ -286,14 +466,25 @@ export function InsightApp() {
         );
         if (Array.isArray(saved)) setBookmarks(saved);
       } catch {}
+      setProfile(readDemoProfile());
+      const demoReport = readDemoReport();
+      if (demoReport) {
+        setStrategy(demoReport);
+        setRestoredReport(true);
+      }
     });
     request("/api/session")
       .then((r) => {
         setUser(r.user || null);
         if (r.user) {
+          sessionIdentity.current = r.user.id;
+          setProfile(emptyProfile);
+          setIsDemo(false);
+          setStrategy(null);
+          setRestoredReport(false);
           request("/api/company")
             .then((c) => {
-              if (c.profile) {
+              if (sessionIdentity.current === r.user.id && c.profile) {
                 setProfile({ ...emptyProfile, ...c.profile });
                 setIsDemo(false);
               }
@@ -301,7 +492,7 @@ export function InsightApp() {
             .catch(() => {});
           request("/api/intelligence")
             .then((r) => {
-              if (r.search) {
+              if (sessionIdentity.current && r.search) {
                 setLiveSignals([
                   ...normalizeSignals(r.search.signals || []),
                   ...normalizeSignals(r.search.candidates || [], true),
@@ -316,6 +507,25 @@ export function InsightApp() {
       })
       .catch(() => {});
   }, []);
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    request("/api/reports")
+      .then((result) => {
+        const latest = result.reports?.[0];
+        if (!cancelled && latest?.payload) {
+          setStrategy({
+            ...latest.payload,
+            generatedAt: latest.payload.generatedAt || latest.created_at,
+          });
+          setRestoredReport(true);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
   useEffect(() => {
     if (toast) {
       const id = setTimeout(() => setToast(""), 4000);
@@ -365,7 +575,13 @@ export function InsightApp() {
   async function saveProfile(e: FormEvent) {
     e.preventDefault();
     if (!user) {
-      setAuthOpen(true);
+      try {
+        localStorage.setItem(DEMO_PROFILE_KEY, JSON.stringify(profile));
+        setIsDemo(true);
+        setToast("演示企业画像已保存在当前浏览器");
+      } catch {
+        setToast("浏览器暂时无法保存，当前填写内容仍可用于生成建议");
+      }
       return;
     }
     setBusy(true);
@@ -381,38 +597,60 @@ export function InsightApp() {
   }
   async function generateStrategy() {
     setStrategyError("");
+    if (!profile.name.trim()) {
+      setStrategyError("请先填写企业名称，或在企业画像中载入演示企业。");
+      return;
+    }
     if (!user) {
-      if (!profile.name) loadDemo();
-      setStrategy({
-        mode: "规则演示",
-        summary:
-          "根据企业业务区域、数据敏感度和部署偏好，建议采用分区域接入、数据分类与多模型备选的组合策略。以下为规则演示，登录后可生成个性化 AI 分析。",
-        recommendations: suggestionGroups.map((s) => ({
-          title: s.title,
-          description: s.detail,
-        })),
-        risks: [
-          "组织成员身份不能直接推断模型可用性。",
-          "实际准入、数据出境和许可义务仍需结合业务与现行规则复核。",
-        ],
-        generatedAt: new Date().toISOString(),
-      });
+      const report = ruleStrategy(profile.name ? profile : exampleProfile);
+      setStrategy(report);
+      try {
+        localStorage.setItem(DEMO_REPORT_KEY, JSON.stringify(report));
+        const history = JSON.parse(
+          localStorage.getItem("windsight-demo-history-v1") || "[]",
+        );
+        localStorage.setItem(
+          "windsight-demo-history-v1",
+          JSON.stringify(
+            [report, ...(Array.isArray(history) ? history : [])].slice(0, 10),
+          ),
+        );
+      } catch {}
+      setRestoredReport(false);
+      setToast("演示分析已生成，报告保存在当前浏览器，可直接导出");
       return;
     }
     setBusy(true);
     try {
       const result = await request("/api/strategy", { profile });
-      setStrategy(result);
+      setStrategy({
+        ...result,
+        profileSnapshot: result.profileSnapshot || { ...profile },
+      });
+      setRestoredReport(false);
     } catch (e) {
       setStrategyError((e as Error).message);
     } finally {
       setBusy(false);
     }
   }
+  function loadCapturedSnapshot() {
+    setLiveSignals([
+      ...normalizeSignals(capturedSearch.signals, false, true),
+      ...normalizeSignals(capturedSearch.candidates, true, true),
+    ]);
+    setQuery("");
+    setCategory("全部情报");
+    setImpact("全部重要性");
+    setBloc("全部");
+    setOnlySaved(false);
+    setRadarMessage(
+      `已载入 ${capturedSearch.signals.length} 条已捕获检索快照（捕获时间 ${new Date(capturedSearch.generatedAt).toLocaleString("zh-CN")}），非当前重新检索。所有社交线索均待核实；此操作不会写入数据库。`,
+    );
+  }
   async function refreshIntelligence() {
     if (!user) {
-      setAuthOpen(true);
-      setAuthMessage("登录后可使用实时 X 与网络情报检索。");
+      loadCapturedSnapshot();
       return;
     }
     setBusy(true);
@@ -450,11 +688,21 @@ export function InsightApp() {
         password: data.get("password"),
       });
       if (r.user) {
+        sessionIdentity.current = r.user.id;
         setUser(r.user);
+        setProfile(emptyProfile);
+        setIsDemo(false);
+        setStrategy(null);
+        setRestoredReport(false);
+        setLiveSignals([]);
+        setRadarMessage("");
         setAuthOpen(false);
         setToast("登录成功");
         const c = await request("/api/company");
-        if (c.profile) setProfile({ ...emptyProfile, ...c.profile });
+        if (sessionIdentity.current === r.user.id && c.profile) {
+          setProfile({ ...emptyProfile, ...c.profile });
+          setIsDemo(false);
+        }
       } else setAuthMessage(r.message || "请前往邮箱确认账户后再登录。");
     } catch (e) {
       setAuthMessage((e as Error).message);
@@ -465,25 +713,53 @@ export function InsightApp() {
   async function signOut() {
     try {
       await request("/api/auth", { action: "signOut" });
+      sessionIdentity.current = null;
       setUser(null);
-      setProfile(exampleProfile);
+      setProfile(readDemoProfile());
       setIsDemo(true);
-      setStrategy(null);
-      setToast("已退出登录");
+      const demoReport = readDemoReport();
+      setStrategy(demoReport);
+      setLiveSignals([]);
+      setRadarMessage("");
+      setRestoredReport(Boolean(demoReport));
+      setToast("已退出真实账户，已返回演示账号");
     } catch (e) {
       setToast((e as Error).message);
     }
   }
   function exportReport() {
+    if (!strategy) {
+      setToast("请先生成战略建议再导出");
+      return;
+    }
+    const reportProfile = strategy.profileSnapshot;
+    const numbered = (items: unknown[] = []) =>
+      items.map((item, index) => `${index + 1}. ${textOf(item)}`);
+    const sourceLines = (strategy.sources || []).map((source, index) => {
+      if (!source || typeof source !== "object")
+        return `${index + 1}. ${textOf(source)}`;
+      const entry = source as Record<string, unknown>;
+      return `${index + 1}. ${entry.title || "参考来源"}\n${entry.url || "未提供链接"}\n资料日期：${entry.date || "未注明"}；来源类型：${entry.sourceType === "social_signal" ? "社交信号（待核实）" : entry.sourceType === "official_snapshot" ? "官方资料快照" : "见原始来源"}${entry.checkedAt ? `；核查日期：${entry.checkedAt}` : ""}`;
+    });
     const body = [
       "观风 windsight · 企业 AI 战略简报",
-      `企业：${profile.name || "尚未建立档案"}`,
-      `业务区域：${profile.markets.join("、")}`,
-      "",
-      strategy?.summary || "请先生成战略建议",
-      ...(strategy?.recommendations || []).map(textOf),
-      "",
-      "内容为辅助研究，具体实施需核实原始来源和适用法律。",
+      `分析状态：${strategy.mode === "ai" ? "AI 辅助分析" : strategy.mode === "rules" ? "本地规则辅助分析" : strategy.mode || "未注明"}`,
+      `生成时间：${strategy.generatedAt || "未注明"}`,
+      reportProfile
+        ? `企业：${reportProfile.name}\n总部：${reportProfile.headquarters}\n所属行业：${reportProfile.industry}\n业务区域：${reportProfile.markets.join("、")}\nAI场景：${reportProfile.useCases.join("、")}\n数据敏感度：${reportProfile.dataSensitivity}\n部署偏好：${reportProfile.deployment}`
+        : "历史报告未记录企业档案快照。下述分析以原报告内容为准，需确认企业信息是否仍然适用。",
+      "建议概览",
+      strategy.summary || "未提供概览",
+      "建议行动",
+      ...numbered(strategy.recommendations),
+      "需进一步核查",
+      ...numbered(strategy.risks),
+      "候选模型方向",
+      ...numbered(strategy.models),
+      "参考来源与资料日期",
+      ...sourceLines,
+      strategy.notice || "",
+      "内容为辅助研究，具体实施需核实原始来源和适用法律。社交信号不自动构成政策事实或合规结论。",
     ].join("\n\n");
     const url = URL.createObjectURL(
       new Blob([body], { type: "text/plain;charset=utf-8" }),
@@ -573,6 +849,12 @@ export function InsightApp() {
     );
   }
   function countryCard(expanded = false) {
+    const officialSource = selected.sources.find((source) =>
+      /\.gov\b|oecd\.ai|oecd\.org|europa\.eu|imda\.gov|meti\.go/.test(
+        source.url,
+      ),
+    );
+    const preferredSource = officialSource || selected.sources[0];
     return (
       <aside className="country-panel panel">
         <div className="panel-heading">
@@ -630,8 +912,10 @@ export function InsightApp() {
           </div>
         )}
         <div className="country-bottom">
-          {selected.sources[0] && (
-            <SourceLink href={selected.sources[0].url}>查看官方来源</SourceLink>
+          {preferredSource && (
+            <SourceLink href={preferredSource.url}>
+              {officialSource ? "查看官方来源" : "查看历史资料"}
+            </SourceLink>
           )}
           {!expanded && (
             <button className="text-button" onClick={() => navigate("map")}>
@@ -675,7 +959,7 @@ export function InsightApp() {
                 ? profile.name.replace("（虚拟企业）", "")
                 : "企业战略工作空间"}
             </strong>
-            <small>{user ? "我的企业空间" : "访客体验空间"}</small>
+            <small>{user ? "我的企业空间" : "演示账号 · 本地工作空间"}</small>
           </span>
           <I name="chevron" size={14} />
         </button>
@@ -745,14 +1029,16 @@ export function InsightApp() {
           </div>
           <button
             className="sidebar-account"
-            onClick={() => (user ? navigate("company") : setAuthOpen(true))}
+            onClick={() => navigate("company")}
           >
             <span className="avatar">
               {user?.email?.[0]?.toUpperCase() || <I name="user" size={16} />}
             </span>
             <div>
-              <strong>{user ? user.email?.split("@")[0] : "访客模式"}</strong>
-              <small>{user ? "企业工作空间" : "登录以保存企业策略"}</small>
+              <strong>
+                {user ? user.email?.split("@")[0] : "演示账号 · Meridian AI"}
+              </strong>
+              <small>{user ? "企业工作空间" : "无需注册 · 可直接体验"}</small>
             </div>
             <I name="chevron" size={14} />
           </button>
@@ -808,17 +1094,40 @@ export function InsightApp() {
                 {user.email?.[0]?.toUpperCase() || "W"}
               </button>
             ) : (
-              <button
-                className="login-button"
-                onClick={() => setAuthOpen(true)}
-              >
-                <I name="user" size={15} />
-                登录 / 注册
-              </button>
+              <>
+                <span className="demo-header-identity">
+                  演示账号 · Meridian AI
+                </span>
+                <button
+                  className="login-button"
+                  onClick={() => setAuthOpen(true)}
+                >
+                  <I name="user" size={15} />
+                  切换真实账号
+                </button>
+              </>
             )}
           </div>
         </header>
         <main id="main-content" className="main-content">
+          {!user && (
+            <div className="demo-session-banner">
+              <span className="demo-session-icon">
+                <I name="building" size={17} />
+              </span>
+              <div>
+                <strong>演示账号 · Meridian AI</strong>
+                <p>
+                  无需注册即可体验完整流程。企业档案与演示报告仅保存在本浏览器；X
+                  展示已捕获快照，战略建议为本地演示分析。
+                </p>
+              </div>
+              <button onClick={() => setAuthOpen(true)}>
+                切换真实账号
+                <I name="chevron" size={12} />
+              </button>
+            </div>
+          )}
           <div className="page-heading">
             <div>
               <div className="page-kicker">
@@ -861,7 +1170,7 @@ export function InsightApp() {
                     size={15}
                     className={busy ? "spinning" : ""}
                   />
-                  {busy ? "正在检索…" : "实时检索"}
+                  {busy ? "正在检索…" : user ? "实时检索" : "查看 X 情报快照"}
                 </button>
               ) : view === "strategy" ? (
                 <button className="btn secondary" onClick={exportReport}>
@@ -977,7 +1286,7 @@ export function InsightApp() {
                       <I name="arrow" size={14} />
                     </button>
                   </div>
-                  {signalList(signals.slice(0, 3), true)}
+                  {signalList(featuredSignals, true)}
                 </section>
                 <section className="strategy-prompt panel">
                   <div className="strategy-prompt-icon">
@@ -1102,7 +1411,7 @@ export function InsightApp() {
                     onClick={refreshIntelligence}
                     disabled={busy}
                   >
-                    {busy ? "检索中…" : "检索最新信号"}
+                    {busy ? "检索中…" : user ? "检索最新信号" : "载入情报快照"}
                   </button>
                 </div>
                 <p>
@@ -1110,6 +1419,16 @@ export function InsightApp() {
                   精选资料可直接浏览；实时检索通过 ZenMux Grok 联网与 X
                   搜索，结果保留原始来源。
                 </p>
+                <div className="search-snapshot-action">
+                  <button
+                    className="text-button"
+                    onClick={loadCapturedSnapshot}
+                  >
+                    <I name="clock" size={13} />
+                    载入已捕获的 X 检索示例
+                  </button>
+                  <span>历史快照 · 演示账号可体验</span>
+                </div>
               </div>
               {radarMessage && (
                 <div className="inline-message">
@@ -1609,7 +1928,7 @@ export function InsightApp() {
                         <I name="shield" size={14} />
                         {user
                           ? "企业资料仅限当前账户访问"
-                          : "登录后可保存至企业工作空间"}
+                          : "演示资料仅保存在当前浏览器，不会写入云端"}
                       </span>
                       <button
                         className="btn primary"
@@ -1620,7 +1939,7 @@ export function InsightApp() {
                           ? "保存中…"
                           : user
                             ? "保存企业画像"
-                            : "登录并保存画像"}
+                            : "保存演示企业画像"}
                       </button>
                     </div>
                   </form>
@@ -1689,7 +2008,9 @@ export function InsightApp() {
                   <I name="spark" size={31} />
                 </div>
                 <div>
-                  <Badge tone="blue">AI 战略工作台</Badge>
+                  <Badge tone="blue">
+                    {user ? "AI 战略工作台" : "演示账号 · 战略工作台"}
+                  </Badge>
                   <h2>把全球风向，转化为你的行动清单。</h2>
                   <p>
                     {profile.name
@@ -1711,7 +2032,9 @@ export function InsightApp() {
                     ? "正在分析企业策略…"
                     : strategy
                       ? "重新生成建议"
-                      : "生成 AI 战略建议"}
+                      : user
+                        ? "生成 AI 战略建议"
+                        : "生成演示战略分析"}
                 </button>
               </section>
               <div className="strategy-context">
@@ -1724,6 +2047,23 @@ export function InsightApp() {
                 <span>{profile.markets.join(" / ") || "业务区域待填写"}</span>
                 <span>{profile.deployment}</span>
               </div>
+              {restoredReport && (
+                <div className="inline-message">
+                  <I name="clock" size={15} />
+                  已恢复
+                  {user ? "最近一次云端历史报告" : "当前浏览器保存的演示报告"}（
+                  {strategy?.generatedAt
+                    ? new Date(strategy.generatedAt).toLocaleString("zh-CN")
+                    : "日期见原报告"}
+                  ）。请确认企业档案是否变化，可随时重新生成。
+                  <button
+                    className="text-button"
+                    onClick={() => setRestoredReport(false)}
+                  >
+                    收起
+                  </button>
+                </div>
+              )}
               {strategyError && (
                 <div className="inline-message error">
                   <I name="info" size={16} />
@@ -1765,8 +2105,18 @@ export function InsightApp() {
                     </Badge>
                   </div>
                   <div className="strategy-summary">
-                    <h3>建议概览</h3>
+                    <h3>
+                      建议概览
+                      {strategy.profileSnapshot?.name
+                        ? ` · ${strategy.profileSnapshot.name}`
+                        : ""}
+                    </h3>
                     <p>{strategy.summary}</p>
+                    {strategy.notice && (
+                      <p className="strategy-analysis-note">
+                        {strategy.notice}
+                      </p>
+                    )}
                   </div>
                   <div className="generated-grid">
                     <div>
@@ -1800,10 +2150,21 @@ export function InsightApp() {
                     <div className="strategy-sources">
                       <strong>参考来源</strong>
                       {strategy.sources.map((s, i) => {
-                        const item = s as { url?: string; title?: string };
+                        const item = s as {
+                          url?: string;
+                          title?: string;
+                          date?: string;
+                          sourceType?: string;
+                        };
                         return item?.url ? (
                           <SourceLink key={i} href={item.url}>
                             {item.title || item.url}
+                            {item.date ? ` · ${item.date.slice(0, 10)}` : ""}
+                            {item.sourceType === "social_signal"
+                              ? " · 社交信号（待核实）"
+                              : item.sourceType === "official_snapshot"
+                                ? " · 官方资料快照"
+                                : ""}
                           </SourceLink>
                         ) : (
                           <span key={i}>{textOf(s)}</span>
@@ -1959,7 +2320,7 @@ export function InsightApp() {
                       done: true,
                     },
                     {
-                      title: "实时 X 与网络检索",
+                      title: "实时 X 情报检索",
                       text: "通过 Grok 查询新信号并保留来源",
                       done: true,
                     },

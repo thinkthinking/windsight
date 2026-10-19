@@ -120,19 +120,20 @@ export async function POST(request: Request) {
       Array.isArray(body.signals) ? body.signals.slice(0, 8) : [],
       evidence,
     );
+    const reportWithProfile = { ...report, profileSnapshot: profile };
     let persistence = "unavailable";
     try {
       if (client) {
         const saved = await client
           .from("windinsight_reports")
-          .insert({ user_id: user.id, payload: report });
+          .insert({ user_id: user.id, payload: reportWithProfile });
         persistence = saved.error ? "failed" : "saved";
       }
     } catch {
       persistence = "failed";
     }
     return Response.json(
-      { ...report, persistence },
+      { ...reportWithProfile, persistence },
       { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (error) {

@@ -164,6 +164,13 @@ export function InsightMap({
         </div>
         <div className="map-attribution">Natural Earth · 组织关系示意</div>
       </div>
+      <div className="map-snapshot-note">
+        <I name="info" size={13} />
+        <span>
+          WAICO 着色基于 2026-07-21 的 29 国历史名单；官方规模已更新为 38
+          国，新增成员待逐项核验。
+        </span>
+      </div>
       <div className="map-footer">
         <div className="map-legend">
           <span>
