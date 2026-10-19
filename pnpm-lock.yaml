@@ -172,6 +172,9 @@ importers:
       '@supabase/supabase-js':
         specifier: 2.108.2
         version: 2.108.2
+      '@zenmux/icons':
+        specifier: 0.1.6
+        version: 0.1.6(react@19.2.8)
       next:
         specifier: 16.3.5
         version: 16.3.5(@babel/core@7.29.7(supports-color@7.2.0))(@types/node@20.19.43)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -944,6 +947,11 @@ packages:
     resolution: {integrity: sha512-nAB74NfSNKknqQ1RrYj6uz8FcXEomu/MATJZxh/x+BArzN2U3JbOYC0APYzUIGhVY3m5hRxA8VPNdPBoG8txlA==}
     cpu: [x64]
     os: [win32]
+
+  '@zenmux/icons@0.1.6':
+    resolution: {integrity: sha512-X6vZDtisAMGs/o/GeojGWlCeJqZ2axuS2o4qEcuN9JhD7QHnxFKPccNZjcltXMit+BqTrV9e8Z2q/ybi9+9PaQ==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -2871,6 +2879,10 @@ snapshots:
 
   '@unrs/resolver-binding-win32-x64-msvc@1.12.2':
     optional: true
+
+  '@zenmux/icons@0.1.6(react@19.2.8)':
+    dependencies:
+      react: 19.2.8
 
   acorn-jsx@5.3.2(acorn@8.19.0):
     dependencies:

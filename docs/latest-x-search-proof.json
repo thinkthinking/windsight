@@ -1,0 +1,25 @@
+{
+  "capturedAt": "2026-10-19T08:07:29.178Z",
+  "model": "x-ai/grok-4.7",
+  "query": "AnthropicAI Singapore office MOU October 14 2026",
+  "toolUsage": {
+    "web_search_calls": 0,
+    "x_search_calls": 1,
+    "x_posts_fetched": 1,
+    "x_users_fetched": 0,
+    "code_interpreter_calls": 0,
+    "file_search_calls": 0,
+    "mcp_calls": 0,
+    "document_search_calls": 0,
+    "image_generation_calls": 0
+  },
+  "text": "None found beyond this official post.\n\n- https://x.com/AnthropicAI/status/2110289695888511368 — Anthropic announced opening a Singapore office and signing an MOU with the Government of Singapore on AI safety and responsible adoption. [[1]](https://x.com/AnthropicAI/status/2110289695888511368)",
+  "citations": [
+    {
+      "url": "https://x.com/AnthropicAI/status/2110289695888511368",
+      "title": "1"
+    }
+  ],
+  "status": "social_signal",
+  "notice": "实际X搜索结果；与官网新闻关联，避免将同一事件重复发布。"
+}

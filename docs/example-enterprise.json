@@ -17,6 +17,57 @@
     ],
     "dataSensitivity": "个人信息",
     "deployment": "混合部署",
-    "description": "中国创始团队在新加坡注册，面向全球开发者提供统一AI模型API、智能路由与用量管理，仅用于比赛的虚拟案例。"
+    "description": "中国创始团队在新加坡注册，面向全球开发者提供统一AI模型API、智能路由与用量管理，仅用于比赛的虚拟案例。",
+    "businesses": [
+      {
+        "id": "global-api",
+        "name": "全球模型 API 聚合",
+        "description": "为全球开发者提供统一模型API、路由、用量与计费服务。",
+        "markets": [
+          "中国",
+          "欧盟",
+          "美国",
+          "新加坡"
+        ],
+        "useCases": [
+          "模型API路由",
+          "开发者接入"
+        ],
+        "dataTypes": [
+          "个人信息",
+          "客户提示词",
+          "调用日志"
+        ],
+        "models": [
+          "OpenAI",
+          "Claude",
+          "Qwen"
+        ],
+        "stage": "试点中"
+      },
+      {
+        "id": "private-gateway",
+        "name": "企业私有 AI 网关",
+        "description": "为企业客户提供区域内托管或私有部署的知识问答网关。",
+        "markets": [
+          "新加坡",
+          "欧盟"
+        ],
+        "useCases": [
+          "企业知识检索",
+          "私有网关"
+        ],
+        "dataTypes": [
+          "商业秘密",
+          "内部文档"
+        ],
+        "models": [
+          "Qwen",
+          "DeepSeek",
+          "Mistral"
+        ],
+        "stage": "规划中"
+      }
+    ]
   }
 }

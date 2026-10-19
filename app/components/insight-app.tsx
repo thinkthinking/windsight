@@ -9,26 +9,44 @@ import {
 } from "react";
 import {
   countries,
-  signals,
+  signals as seedSignals,
   aiModels,
   organizations,
   DATA_UPDATED_AT,
   DATA_NOTE,
-  type Country,
   type Signal,
 } from "@/lib/data";
 import { I, WindLogo, type IconName } from "./insight-icons";
-import { InsightMap } from "./insight-map";
+import { BrandLogo } from "./brand-logo";
+import Link from "next/link";
 import capturedSearch from "@/docs/live-search-example.json";
+import latestEvents from "@/docs/latest-ai-events.json";
+const initialPolicyFeed: Signal[] = Array.from(
+  new Map(
+    [...seedSignals, ...(latestEvents as Signal[])].map((signal) => [
+      signal.id,
+      signal,
+    ]),
+  ).values(),
+).sort((a, b) => b.date.localeCompare(a.date));
 
 type View =
   | "overview"
-  | "map"
   | "radar"
-  | "models"
   | "company"
+  | "businesses"
   | "strategy"
   | "sources";
+type Business = {
+  id: string;
+  name: string;
+  description: string;
+  markets: string[];
+  useCases: string[];
+  dataTypes: string[];
+  models: string[];
+  stage: "规划中" | "试点中" | "已上线";
+};
 type Profile = {
   name: string;
   website: string;
@@ -39,6 +57,7 @@ type Profile = {
   dataSensitivity: string;
   deployment: string;
   description: string;
+  businesses: Business[];
 };
 type SessionUser = { id?: string; email?: string };
 type StrategyResult = {
@@ -51,6 +70,14 @@ type StrategyResult = {
   mode?: string;
   notice?: string;
   profileSnapshot?: Profile;
+  businessInsights?: {
+    businessId: string;
+    businessName: string;
+    exposure: string;
+    opportunity: string;
+    actions: string[];
+    sourceUrls: string[];
+  }[];
 };
 const navigation: {
   id: View;
@@ -60,49 +87,96 @@ const navigation: {
 }[] = [
   {
     id: "overview",
-    label: "全球态势",
+    label: "企业概览",
     icon: "overview",
-    description: "把变化，看成下一步",
-  },
-  {
-    id: "map",
-    label: "治理版图",
-    icon: "globe",
-    description: "连接组织、国家与 AI 生态",
-  },
-  {
-    id: "radar",
-    label: "情报雷达",
-    icon: "radar",
-    description: "政策与技术信号，值得你关注的变化",
-  },
-  {
-    id: "models",
-    label: "模型与公司",
-    icon: "models",
-    description: "为业务场景选择合适的 AI 能力",
+    description: "从业务场景出发，看清政策变化与你的关系",
   },
   {
     id: "company",
     label: "企业画像",
     icon: "building",
-    description: "从你的业务出发，理解全球化风险",
+    description: "维护企业信息，建立专属的决策背景",
+  },
+  {
+    id: "businesses",
+    label: "业务场景",
+    icon: "models",
+    description: "按业务维护市场、AI用途、数据与模型依赖",
+  },
+  {
+    id: "radar",
+    label: "政策风向",
+    icon: "radar",
+    description: "连接业务地区与政策信号，发现需要采取的行动",
   },
   {
     id: "strategy",
     label: "战略建议",
     icon: "spark",
-    description: "让全球变化，成为企业的决策依据",
+    description: "针对具体业务生成有来源的战略与行动建议",
   },
   {
     id: "sources",
-    label: "数据与来源",
+    label: "数据来源",
     icon: "source",
-    description: "每一个判断，都能回到原始证据",
+    description: "追溯政策事实、社交线索与报告判断的来源",
   },
 ];
+const demoBusinesses: Business[] = [
+  {
+    id: "model-api",
+    name: "全球模型 API 聚合",
+    description:
+      "向全球开发者提供多供应商模型API、智能路由与统一计费；中国团队、新加坡注册主体，终端客户分布在多个地区。",
+    markets: ["中国", "欧盟", "美国", "东南亚"],
+    useCases: ["模型 API 路由", "开发者平台", "跨境 AI 服务"],
+    dataTypes: ["个人信息", "API 密钥", "日志与调用记录"],
+    models: ["GPT-5", "Claude Sonnet 4", "Qwen3"],
+    stage: "试点中",
+  },
+  {
+    id: "private-gateway",
+    name: "企业私有 AI 网关",
+    description:
+      "为企业客户提供区域内模型接入网关、私有化开放权重部署与请求审计，支持企业内部知识与自动化场景。",
+    markets: ["中国", "东南亚", "欧盟"],
+    useCases: ["知识检索", "业务自动化", "私有化部署"],
+    dataTypes: ["商业秘密", "个人信息", "日志与调用记录"],
+    models: ["Qwen3", "DeepSeek-R1", "Mistral Small 4"],
+    stage: "规划中",
+  },
+];
+function businessPolicies(
+  businesses: Business[],
+  events: Signal[] = initialPolicyFeed,
+): Signal[] {
+  const text = businesses
+    .map((b) =>
+      [...b.markets, ...b.dataTypes, ...b.useCases, b.description].join(" "),
+    )
+    .join(" ");
+  const regionCodes = [
+    ...(/中国/.test(text) ? ["CN"] : []),
+    ...(/美国/.test(text) ? ["US"] : []),
+    ...(/欧盟/.test(text) ? ["EU"] : []),
+    ...(/东南亚|新加坡/.test(text) ? ["SG"] : []),
+  ];
+  return events
+    .map((signal) => ({
+      signal,
+      score:
+        (regionCodes.includes(signal.country) ? 4 : 0) +
+        (signal.category === "市场准入" ? 3 : 0) +
+        (signal.category === "数据安全" && /个人|秘密/.test(text) ? 3 : 0) +
+        (signal.category === "技术模型" && /私有|开放|路由/.test(text) ? 2 : 0),
+    }))
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((item) => item.signal);
+}
 const exampleProfile: Profile = {
   name: "Meridian AI（虚拟企业）",
+  businesses: demoBusinesses,
   website: "",
   industry: "AI 聚合平台",
   headquarters: "新加坡",
@@ -115,6 +189,7 @@ const exampleProfile: Profile = {
 };
 const emptyProfile: Profile = {
   name: "",
+  businesses: [],
   website: "",
   industry: "跨境电商",
   headquarters: "中国",
@@ -150,7 +225,15 @@ const suggestionGroups = [
     tone: "green",
   },
 ];
-function ruleStrategy(profile: Profile): StrategyResult {
+function ruleStrategy(
+  profile: Profile,
+  selectedBusinessId = "all",
+  events: Signal[] = initialPolicyFeed,
+): StrategyResult {
+  const scope = (profile.businesses || []).filter(
+    (b) => selectedBusinessId === "all" || b.id === selectedBusinessId,
+  );
+
   const markets = profile.markets.length
     ? profile.markets.join("、")
     : profile.headquarters;
@@ -215,7 +298,8 @@ function ruleStrategy(profile: Profile): StrategyResult {
       privateDeploy ? m.openness === "开放权重" : m.openness === "闭源",
     )
     .slice(0, 3);
-  const relevant = signals
+  const relevant = events
+    .filter((signal) => signal.status === "已核实")
     .filter(
       (signal) =>
         signal.category === "市场准入" ||
@@ -226,7 +310,29 @@ function ruleStrategy(profile: Profile): StrategyResult {
     .slice(0, 5);
   return {
     mode: "rules",
-    summary: `这是为${profile.name || "当前企业"}生成的本地规则演示：企业位于${profile.headquarters}，业务覆盖${markets}，计划采用${profile.deployment}处理${profile.dataSensitivity}。${aggregation ? "AI 聚合平台应优先核查供应商转售与终端用户资格，并建立按租户和区域隔离的路由策略。" : "建议先建立区域准入和场景上线门槛，再逐步扩大 AI 使用。"}这些方向依据已填写档案匹配，未调用实时 AI。`,
+    businessInsights: scope.map((b) => ({
+      businessId: b.id,
+      businessName: b.name,
+      exposure: `${b.stage}业务覆盖${b.markets.join("、")}，涉及${b.dataTypes.join("、")}。${b.models.length ? `依赖${b.models.join("、")}，需逐项核查供应商服务资格、许可及终端用户条件。` : "尚未登记模型依赖，请先补充技术栈。"}`,
+      opportunity:
+        b.useCases.includes("私有化部署") || b.name.includes("私有")
+          ? "以区域内私有部署承接企业敏感数据场景，形成可审计、可切换的模型接入能力。"
+          : "通过多模型池和按地区路由提高服务韧性，同时为客户披露真实处理方与限制。",
+      actions: [
+        `为${b.name}维护「市场—客户—模型—数据处理方」准入清单。`,
+        b.dataTypes.includes("个人信息")
+          ? "拆分个人信息与API调用日志，配置脱敏、留存期限及跨境传输核查。"
+          : "按业务需要最小化采集并设置访问与留存控制。",
+        b.stage === "规划中"
+          ? "上线前完成许可、服务地区与数据处理条款复核。"
+          : "将政策变化与供应商条款更新加入变更审批及回滚流程。",
+      ],
+      sourceUrls: businessPolicies([b], events)
+        .filter((policy) => policy.status === "已核实")
+        .slice(0, 3)
+        .map((policy) => policy.sourceUrl),
+    })),
+    summary: `这是为${profile.name || "当前企业"}的${scope.length ? scope.map((b) => b.name).join("、") : "企业整体"}生成的本地规则演示：企业位于${profile.headquarters}，业务覆盖${markets}，计划采用${profile.deployment}处理${profile.dataSensitivity}。${aggregation ? "AI 聚合平台应优先核查供应商转售与终端用户资格，并建立按租户和区域隔离的路由策略。" : "建议先建立区域准入和场景上线门槛，再逐步扩大 AI 使用。"}这些方向依据已填写档案匹配，未调用实时 AI。`,
     recommendations,
     risks: [
       {
@@ -259,11 +365,13 @@ function ruleStrategy(profile: Profile): StrategyResult {
     notice: "本地规则演示，未调用实时 AI；候选模型不代表已获得使用或转售资格。",
   };
 }
-const featuredSignals = [
-  signals.find((s) => s.category === "市场准入"),
-  signals.find((s) => s.country === "EU" && s.category === "政策监管"),
-  signals.find((s) => s.category === "技术模型"),
-].filter((s): s is Signal => Boolean(s));
+function featureSignals(events: Signal[]) {
+  return [
+    events.find((s) => s.category === "市场准入"),
+    events.find((s) => s.country === "EU" && s.category === "政策监管"),
+    events.find((s) => s.category === "技术模型"),
+  ].filter((signal): signal is Signal => Boolean(signal));
+}
 const DEMO_PROFILE_KEY = "windsight-demo-profile-v1";
 const DEMO_REPORT_KEY = "windsight-demo-report-v1";
 function readDemoProfile(): Profile {
@@ -288,6 +396,35 @@ function readDemoProfile(): Profile {
         profile[key] = value[key]
           .filter((item: unknown) => typeof item === "string")
           .slice(0, 20);
+    if (Array.isArray(value.businesses))
+      profile.businesses = value.businesses
+        .filter(
+          (b: unknown) =>
+            b &&
+            typeof b === "object" &&
+            typeof (b as Business).id === "string" &&
+            typeof (b as Business).name === "string",
+        )
+        .slice(0, 20)
+        .map((b: Business) => ({
+          ...b,
+          description: typeof b.description === "string" ? b.description : "",
+          markets: Array.isArray(b.markets)
+            ? b.markets.filter((v) => typeof v === "string")
+            : [],
+          useCases: Array.isArray(b.useCases)
+            ? b.useCases.filter((v) => typeof v === "string")
+            : [],
+          dataTypes: Array.isArray(b.dataTypes)
+            ? b.dataTypes.filter((v) => typeof v === "string")
+            : [],
+          models: Array.isArray(b.models)
+            ? b.models.filter((v) => typeof v === "string")
+            : [],
+          stage: ["规划中", "试点中", "已上线"].includes(b.stage)
+            ? b.stage
+            : "规划中",
+        }));
     return profile;
   } catch {
     return { ...exampleProfile };
@@ -422,9 +559,7 @@ async function request(path: string, body?: unknown) {
 export function InsightApp() {
   const sessionIdentity = useRef<string | null>(null);
   const [view, setView] = useState<View>("overview");
-  const [selected, setSelected] = useState<Country>(
-    () => countries.find((c) => c.code === "CN") || countries[0],
-  );
+  const [policyFeed, setPolicyFeed] = useState<Signal[]>(initialPolicyFeed);
   const [bloc, setBloc] = useState("全部");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("全部情报");
@@ -439,6 +574,9 @@ export function InsightApp() {
   const [authMessage, setAuthMessage] = useState("");
   const [profile, setProfile] = useState<Profile>(exampleProfile);
   const [isDemo, setIsDemo] = useState(true);
+  const [selectedBusinessId, setSelectedBusinessId] = useState("all");
+  const [businessDraft, setBusinessDraft] = useState<Business | null>(null);
+  const [businessDeleteId, setBusinessDeleteId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState("");
   const [strategy, setStrategy] = useState<StrategyResult | null>(null);
@@ -446,8 +584,6 @@ export function InsightApp() {
   const [restoredReport, setRestoredReport] = useState(false);
   const [liveSignals, setLiveSignals] = useState<Signal[]>([]);
   const [radarMessage, setRadarMessage] = useState("");
-  const [modelFilter, setModelFilter] = useState("全部模型");
-  const [compared, setCompared] = useState<string[]>([]);
   const [mobileNav, setMobileNav] = useState(false);
   function navigate(next: View) {
     setView(next);
@@ -456,6 +592,40 @@ export function InsightApp() {
     window.history.replaceState(null, "", `#${next}`);
     window.scrollTo({ top: 0, behavior: "instant" });
   }
+  useEffect(() => {
+    let cancelled = false;
+    async function refreshFeed() {
+      try {
+        const feed = await request("/api/feed");
+        if (!cancelled && Array.isArray(feed.signals)) {
+          const accepted = feed.signals.filter(
+            (value: unknown): value is Signal =>
+              Boolean(
+                value &&
+                  typeof value === "object" &&
+                  typeof (value as Signal).id === "string" &&
+                  typeof (value as Signal).title === "string" &&
+                  Array.isArray((value as Signal).tags),
+              ),
+          );
+          setPolicyFeed(
+            accepted.map((signal: Signal) => ({
+              ...signal,
+              status: signal.status === "已核实" ? "已核实" : "待核实",
+            })),
+          );
+        }
+      } catch {
+        /* Keep the latest available source snapshot. */
+      }
+    }
+    void refreshFeed();
+    const timer = setInterval(refreshFeed, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, []);
   useEffect(() => {
     queueMicrotask(() => {
       const hash = window.location.hash.slice(1) as View;
@@ -485,7 +655,13 @@ export function InsightApp() {
           request("/api/company")
             .then((c) => {
               if (sessionIdentity.current === r.user.id && c.profile) {
-                setProfile({ ...emptyProfile, ...c.profile });
+                setProfile({
+                  ...emptyProfile,
+                  ...c.profile,
+                  businesses: Array.isArray(c.profile.businesses)
+                    ? c.profile.businesses
+                    : [],
+                });
                 setIsDemo(false);
               }
             })
@@ -532,8 +708,89 @@ export function InsightApp() {
       return () => clearTimeout(id);
     }
   }, [toast]);
-  const active = navigation.find((n) => n.id === view)!;
-  const allSignals = [...liveSignals, ...signals];
+  const active = navigation.find((n) => n.id === view) || navigation[0];
+  const businesses = profile.businesses || [];
+  const focusedBusinesses =
+    selectedBusinessId === "all"
+      ? businesses
+      : businesses.filter((b) => b.id === selectedBusinessId);
+  const relatedPolicies = businessPolicies(
+    focusedBusinesses.length ? focusedBusinesses : businesses,
+    policyFeed,
+  );
+  const featuredSignals = featureSignals(policyFeed);
+  const marketCount = new Set(businesses.flatMap((b) => b.markets)).size;
+  async function persistBusinessProfile(next: Profile, message: string) {
+    setProfile(next);
+    setBusy(true);
+    try {
+      if (user) {
+        await request("/api/company", { profile: next });
+        setIsDemo(false);
+      } else {
+        localStorage.setItem(DEMO_PROFILE_KEY, JSON.stringify(next));
+        setIsDemo(true);
+      }
+      setToast(message + (user ? "，已同步云端" : "，已保存在本浏览器"));
+    } catch (error) {
+      setToast((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  function newBusiness() {
+    setBusinessDraft({
+      id: `business-${Date.now()}`,
+      name: "",
+      description: "",
+      markets: [],
+      useCases: [],
+      dataTypes: [],
+      models: [],
+      stage: "规划中",
+    });
+    setBusinessDeleteId(null);
+  }
+  async function saveBusiness(e: FormEvent) {
+    e.preventDefault();
+    if (!businessDraft) return;
+    const next = {
+      ...profile,
+      businesses: businesses.some((b) => b.id === businessDraft.id)
+        ? businesses.map((b) => (b.id === businessDraft.id ? businessDraft : b))
+        : [...businesses, businessDraft],
+    };
+    await persistBusinessProfile(next, "业务场景已保存");
+  }
+  async function deleteBusiness(id: string) {
+    await persistBusinessProfile(
+      { ...profile, businesses: businesses.filter((b) => b.id !== id) },
+      "业务场景已删除",
+    );
+    setBusinessDraft(null);
+    if (selectedBusinessId === id) setSelectedBusinessId("all");
+    setBusinessDeleteId(null);
+  }
+  function toggleBusinessField(
+    field: "markets" | "useCases" | "dataTypes" | "models",
+    value: string,
+  ) {
+    setBusinessDraft((current) =>
+      current
+        ? {
+            ...current,
+            [field]: current[field].includes(value)
+              ? current[field].filter((item) => item !== value)
+              : [...current[field], value],
+          }
+        : current,
+    );
+  }
+  const allSignals = Array.from(
+    new Map(
+      [...policyFeed, ...liveSignals].map((signal) => [signal.id, signal]),
+    ).values(),
+  ).sort((a, b) => b.date.localeCompare(a.date));
   const filteredSignals = allSignals.filter(
     (s) =>
       (category === "全部情报" || s.category === category) &&
@@ -545,15 +802,6 @@ export function InsightApp() {
       (!onlySaved || bookmarks.includes(s.id)) &&
       (!query ||
         [s.title, s.summary, s.countryName, ...s.tags]
-          .join(" ")
-          .toLowerCase()
-          .includes(query.toLowerCase())),
-  );
-  const filteredModels = aiModels.filter(
-    (m) =>
-      (modelFilter === "全部模型" || m.openness === modelFilter) &&
-      (!query ||
-        [m.name, m.company, m.country, ...m.strengths]
           .join(" ")
           .toLowerCase()
           .includes(query.toLowerCase())),
@@ -602,7 +850,11 @@ export function InsightApp() {
       return;
     }
     if (!user) {
-      const report = ruleStrategy(profile.name ? profile : exampleProfile);
+      const report = ruleStrategy(
+        profile.name ? profile : exampleProfile,
+        selectedBusinessId,
+        policyFeed,
+      );
       setStrategy(report);
       try {
         localStorage.setItem(DEMO_REPORT_KEY, JSON.stringify(report));
@@ -622,7 +874,11 @@ export function InsightApp() {
     }
     setBusy(true);
     try {
-      const result = await request("/api/strategy", { profile });
+      const result = await request("/api/strategy", {
+        profile,
+        selectedBusinessId:
+          selectedBusinessId === "all" ? undefined : selectedBusinessId,
+      });
       setStrategy({
         ...result,
         profileSnapshot: result.profileSnapshot || { ...profile },
@@ -700,7 +956,13 @@ export function InsightApp() {
         setToast("登录成功");
         const c = await request("/api/company");
         if (sessionIdentity.current === r.user.id && c.profile) {
-          setProfile({ ...emptyProfile, ...c.profile });
+          setProfile({
+            ...emptyProfile,
+            ...c.profile,
+            businesses: Array.isArray(c.profile.businesses)
+              ? c.profile.businesses
+              : [],
+          });
           setIsDemo(false);
         }
       } else setAuthMessage(r.message || "请前往邮箱确认账户后再登录。");
@@ -750,6 +1012,11 @@ export function InsightApp() {
         : "历史报告未记录企业档案快照。下述分析以原报告内容为准，需确认企业信息是否仍然适用。",
       "建议概览",
       strategy.summary || "未提供概览",
+      "业务关联洞察",
+      ...(strategy.businessInsights || []).map(
+        (item) =>
+          `${item.businessName}\n风险暴露：${item.exposure}\n机会：${item.opportunity}\n行动：${item.actions.join("；")}\n政策来源：${item.sourceUrls.join("\n")}`,
+      ),
       "建议行动",
       ...numbered(strategy.recommendations),
       "需进一步核查",
@@ -848,96 +1115,13 @@ export function InsightApp() {
       </div>
     );
   }
-  function countryCard(expanded = false) {
-    const officialSource = selected.sources.find((source) =>
-      /\.gov\b|oecd\.ai|oecd\.org|europa\.eu|imda\.gov|meti\.go/.test(
-        source.url,
-      ),
-    );
-    const preferredSource = officialSource || selected.sources[0];
-    return (
-      <aside className="country-panel panel">
-        <div className="panel-heading">
-          <span>国家观察</span>
-          <Badge
-            tone={
-              selected.bloc === "GPAI"
-                ? "blue"
-                : selected.bloc === "WAICO"
-                  ? "green"
-                  : "purple"
-            }
-          >
-            {selected.bloc}
-          </Badge>
-        </div>
-        <div className="country-name">
-          <span className="country-flag">{selected.flag}</span>
-          <div>
-            <h2>{selected.name}</h2>
-            <p>{selected.nameEn}</p>
-          </div>
-          <I name="globe" size={30} />
-        </div>
-        <p className="country-summary">{selected.summary}</p>
-        <div className="country-facts">
-          <div>
-            <span>所属区域</span>
-            <strong>{selected.region}</strong>
-          </div>
-          <div>
-            <span>治理协作</span>
-            <strong>{selected.organizations.join(" / ") || "持续观察"}</strong>
-          </div>
-          <div>
-            <span>证据状态</span>
-            <strong>{selected.evidenceStatus}</strong>
-          </div>
-        </div>
-        <div className="country-policy">
-          <span>
-            <I name="shield" size={14} />
-            政策关注
-          </span>
-          <p>{selected.policy}</p>
-        </div>
-        {selected.companies.length > 0 && (
-          <div className="country-companies">
-            <span>代表 AI 企业</span>
-            <div>
-              {selected.companies.map((c) => (
-                <Badge key={c}>{c}</Badge>
-              ))}
-            </div>
-          </div>
-        )}
-        <div className="country-bottom">
-          {preferredSource && (
-            <SourceLink href={preferredSource.url}>
-              {officialSource ? "查看官方来源" : "查看历史资料"}
-            </SourceLink>
-          )}
-          {!expanded && (
-            <button className="text-button" onClick={() => navigate("map")}>
-              探索版图
-              <I name="arrow" size={14} />
-            </button>
-          )}
-        </div>
-      </aside>
-    );
-  }
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">
         跳转到主要内容
       </a>
       <aside className={`sidebar ${mobileNav ? "open" : ""}`}>
-        <button
-          className="brand"
-          onClick={() => navigate("overview")}
-          aria-label="观风首页"
-        >
+        <Link className="brand" href="/" aria-label="返回观风主站">
           <WindLogo />
           <div>
             <strong>
@@ -945,7 +1129,7 @@ export function InsightApp() {
             </strong>
             <small>全球企业 AI 战略情报</small>
           </div>
-        </button>
+        </Link>
         <button
           className="workspace-switch"
           onClick={() => navigate("company")}
@@ -963,9 +1147,9 @@ export function InsightApp() {
           </span>
           <I name="chevron" size={14} />
         </button>
-        <nav aria-label="主导航">
-          <p className="nav-group-label">全球洞察</p>
-          {navigation.slice(0, 4).map((item) => (
+        <nav aria-label="企业后台主导航">
+          <p className="nav-group-label">企业工作空间</p>
+          {navigation.map((item) => (
             <button
               key={item.id}
               className={`nav-item ${view === item.id ? "active" : ""}`}
@@ -974,32 +1158,18 @@ export function InsightApp() {
             >
               <I name={item.icon} />
               {item.label}
-              {item.id === "radar" && (
-                <span className="nav-count">{signals.length}</span>
+              {item.id === "businesses" && (
+                <span className="nav-count">{businesses.length}</span>
               )}
-            </button>
-          ))}
-          <p className="nav-group-label second">企业决策</p>
-          {navigation.slice(4, 6).map((item) => (
-            <button
-              key={item.id}
-              className={`nav-item ${view === item.id ? "active" : ""}`}
-              aria-current={view === item.id ? "page" : undefined}
-              onClick={() => navigate(item.id)}
-            >
-              <I name={item.icon} />
-              {item.label}
               {item.id === "strategy" && <span className="ai-tag">AI</span>}
             </button>
           ))}
-          <p className="nav-group-label second">工作空间</p>
-          <button
-            className={`nav-item ${view === "sources" ? "active" : ""}`}
-            onClick={() => navigate("sources")}
-          >
-            <I name="source" />
-            数据与来源
-          </button>
+          <p className="nav-group-label second">全球视野</p>
+          <Link href="/" className="nav-item">
+            <I name="globe" />
+            返回观风主站
+            <I name="external" size={12} />
+          </Link>
           <button
             className="nav-item"
             onClick={() => {
@@ -1008,7 +1178,7 @@ export function InsightApp() {
             }}
           >
             <I name="eye" />
-            我的关注<span className="nav-count">{bookmarks.length}</span>
+            已关注的政策<span className="nav-count">{bookmarks.length}</span>
           </button>
         </nav>
         <div className="sidebar-bottom">
@@ -1054,7 +1224,11 @@ export function InsightApp() {
             >
               <I name="menu" />
             </button>
-            <span>工作空间</span>
+            <Link href="/" className="console-home-link">
+              观风主站
+            </Link>
+            <I name="chevron" size={12} />
+            <span>企业后台</span>
             <I name="chevron" size={12} />
             <strong>{active.label}</strong>
           </div>
@@ -1067,7 +1241,7 @@ export function InsightApp() {
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
-                  if (view !== "models" && view !== "radar") setView("radar");
+                  if (view !== "radar") setView("radar");
                 }}
               />
               <kbd>⌕</kbd>
@@ -1132,19 +1306,21 @@ export function InsightApp() {
             <div>
               <div className="page-kicker">
                 <span className="status-dot" />
-                全球 AI 治理与产业观察
+                企业 AI 战略工作空间
               </div>
               <h1>
-                {view === "overview" ? "全球风向，尽在掌握。" : active.label}
+                {view === "overview"
+                  ? "你的业务，正在怎样的风向里？"
+                  : active.label}
               </h1>
               <p>
                 {view === "overview"
-                  ? "连接全球政策与技术信号，为企业的下一步提供依据。"
+                  ? "维护业务场景，连接市场政策、数据条件与模型依赖，形成可执行的企业 AI 战略。"
                   : active.description}
               </p>
             </div>
             <div className="heading-actions">
-              {view === "overview" || view === "map" ? (
+              {view === "overview" ? (
                 <>
                   <span className="date-note">
                     <I name="clock" size={14} />
@@ -1182,221 +1358,301 @@ export function InsightApp() {
           </div>
           {view === "overview" && (
             <>
-              <div className="stats-grid">
-                {organizations.map((o, i) => (
+              <section className="enterprise-summary panel">
+                <div className="enterprise-emblem">
+                  <I name="building" size={29} />
+                </div>
+                <div>
+                  <div className="enterprise-summary-meta">
+                    <Badge tone="blue">
+                      {user ? "企业工作空间" : "虚拟企业案例"}
+                    </Badge>
+                    <span>{profile.headquarters}注册主体</span>
+                  </div>
+                  <h2>{profile.name || "建立你的企业画像"}</h2>
+                  <p>
+                    {profile.description ||
+                      "先填写企业信息，再维护真实业务与AI使用场景。"}
+                  </p>
+                </div>
+                <button
+                  className="btn secondary"
+                  onClick={() => navigate("company")}
+                >
+                  维护企业画像
+                  <I name="arrow" size={14} />
+                </button>
+              </section>
+              <div className="stats-grid enterprise-stats">
+                {[
+                  {
+                    label: "已维护业务场景",
+                    value: businesses.length,
+                    unit: "项",
+                    note: "业务是策略分析的最小单元",
+                    icon: "models" as IconName,
+                    tone: "blue",
+                    target: "businesses" as View,
+                  },
+                  {
+                    label: "覆盖业务市场",
+                    value: marketCount,
+                    unit: "个",
+                    note: "按业务拆分区域准入条件",
+                    icon: "globe" as IconName,
+                    tone: "green",
+                    target: "businesses" as View,
+                  },
+                  {
+                    label: "关联政策线索",
+                    value: relatedPolicies.length,
+                    unit: "条",
+                    note: "来自已收录的政策与技术信号",
+                    icon: "radar" as IconName,
+                    tone: "amber",
+                    target: "radar" as View,
+                  },
+                  {
+                    label: "业务已进入试点",
+                    value: businesses.filter((b) => b.stage !== "规划中")
+                      .length,
+                    unit: "项",
+                    note: "持续关注上线与变更条件",
+                    icon: "shield" as IconName,
+                    tone: "purple",
+                    target: "strategy" as View,
+                  },
+                ].map((stat) => (
                   <button
-                    key={o.id}
                     className="stat-card"
-                    onClick={() => {
-                      setBloc(o.id);
-                      navigate("map");
-                    }}
+                    key={stat.label}
+                    onClick={() => navigate(stat.target)}
                   >
-                    <div className={`stat-symbol ${i ? "green" : "blue"}`}>
-                      <I name="globe" size={21} />
+                    <div className={`stat-symbol ${stat.tone}`}>
+                      <I name={stat.icon} size={20} />
                     </div>
                     <div>
-                      <span>
-                        {o.id}{" "}
-                        {i
-                          ? "世界人工智能合作组织"
-                          : "全球人工智能合作伙伴关系"}
-                      </span>
+                      <span>{stat.label}</span>
                       <strong>
-                        {o.memberCount}
-                        <small>
-                          {o.id === "GPAI" ? "国 + 欧盟" : "个成员国"}
-                        </small>
+                        {stat.value}
+                        <small>{stat.unit}</small>
                       </strong>
-                      <p>
-                        <i className={i ? "waico-dot" : "gpai-dot"} />
-                        {o.id === "GPAI"
-                          ? "以 OECD 为基础的多边协作"
-                          : "面向全球的 AI 国际合作"}
-                      </p>
+                      <p>{stat.note}</p>
                     </div>
-                    <I name="chevron" size={15} />
+                    <I name="chevron" size={14} />
                   </button>
                 ))}
-                <button className="stat-card" onClick={() => navigate("radar")}>
-                  <div className="stat-symbol amber">
-                    <I name="radar" size={21} />
-                  </div>
-                  <div>
-                    <span>已收录关键情报</span>
-                    <strong>
-                      {signals.length}
-                      <small>条</small>
-                    </strong>
-                    <p>
-                      <i className="amber-dot" />
-                      {signals.filter((s) => s.impact === "高").length}{" "}
-                      条重点关注信号
-                    </p>
-                  </div>
-                  <I name="chevron" size={15} />
-                </button>
-                <button
-                  className="stat-card"
-                  onClick={() => navigate("models")}
-                >
-                  <div className="stat-symbol purple">
-                    <I name="models" size={21} />
-                  </div>
-                  <div>
-                    <span>代表模型与供应商</span>
-                    <strong>
-                      {aiModels.length}
-                      <small>个模型</small>
-                    </strong>
-                    <p>
-                      <i className="purple-dot" />
-                      覆盖闭源与开放权重
-                    </p>
-                  </div>
-                  <I name="chevron" size={15} />
-                </button>
               </div>
-              <div className="overview-map-grid">
-                <InsightMap
-                  countries={countries}
-                  selected={selected}
-                  onSelect={setSelected}
-                  bloc={bloc}
-                  onBloc={setBloc}
-                />
-                {countryCard()}
-              </div>
-              <div className="overview-lower-grid">
-                <section className="panel intelligence-panel">
+              <div className="enterprise-overview-grid">
+                <section className="panel">
                   <div className="section-top">
                     <div>
                       <h2>
-                        <I name="radar" size={18} />
-                        值得关注的变化
-                        <span className="quiet-tag">精选情报</span>
+                        <I name="models" size={18} />
+                        业务场景概览
                       </h2>
-                      <p>从政策到技术，追踪影响企业 AI 决策的关键信号</p>
+                      <p>不同业务面对不同地区、数据与模型条件</p>
                     </div>
                     <button
                       className="text-button"
-                      onClick={() => navigate("radar")}
+                      onClick={() => {
+                        navigate("businesses");
+                        newBusiness();
+                      }}
                     >
-                      全部情报
-                      <I name="arrow" size={14} />
+                      <I name="plus" size={14} />
+                      新增业务
                     </button>
                   </div>
-                  {signalList(featuredSignals, true)}
-                </section>
-                <section className="strategy-prompt panel">
-                  <div className="strategy-prompt-icon">
-                    <I name="spark" size={23} />
+                  <div className="business-overview-list">
+                    {businesses.length ? (
+                      businesses.map((b) => (
+                        <article key={b.id}>
+                          <div className="business-overview-title">
+                            <span className="business-mark">
+                              <I
+                                name={
+                                  b.name.includes("私有") ? "shield" : "models"
+                                }
+                                size={19}
+                              />
+                            </span>
+                            <div>
+                              <h3>{b.name}</h3>
+                              <p>{b.markets.join(" / ") || "待维护业务市场"}</p>
+                            </div>
+                            <Badge
+                              tone={
+                                b.stage === "已上线"
+                                  ? "green"
+                                  : b.stage === "试点中"
+                                    ? "blue"
+                                    : "neutral"
+                              }
+                            >
+                              {b.stage}
+                            </Badge>
+                          </div>
+                          <p className="business-overview-description">
+                            {b.description}
+                          </p>
+                          <div className="business-overview-bottom">
+                            <span>
+                              {b.models.slice(0, 3).map((model) => (
+                                <span
+                                  className="business-model-logo"
+                                  key={model}
+                                  title={model}
+                                >
+                                  <BrandLogo name={model} size={17} />
+                                </span>
+                              ))}
+                              {b.dataTypes.slice(0, 2).join(" · ") ||
+                                "数据类型待补充"}
+                            </span>
+                            <button
+                              className="text-button"
+                              onClick={() => {
+                                setSelectedBusinessId(b.id);
+                                navigate("strategy");
+                              }}
+                            >
+                              分析此业务
+                              <I name="arrow" size={13} />
+                            </button>
+                          </div>
+                        </article>
+                      ))
+                    ) : (
+                      <div className="empty-state">
+                        <I name="models" size={28} />
+                        <h3>从第一项业务开始</h3>
+                        <p>描述市场、客户、数据与模型，让政策判断与你相关。</p>
+                        <button
+                          className="btn primary"
+                          onClick={() => {
+                            navigate("businesses");
+                            newBusiness();
+                          }}
+                        >
+                          新增业务场景
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <Badge tone="blue">企业专属洞察</Badge>
-                  <h2>
-                    全球的变化，
-                    <br />
-                    与你的企业有什么关系？
-                  </h2>
+                </section>
+                <aside className="panel enterprise-next-step">
+                  <div className="large-icon blue">
+                    <I name="spark" size={25} />
+                  </div>
+                  <h2>让变化，连接到具体业务。</h2>
                   <p>
-                    建立企业画像，让政策、模型和市场动向转化为适合你的 AI 策略。
+                    从企业信息到业务场景，再到有来源的策略建议，形成完整决策链。
                   </p>
-                  <div className="mini-steps">
-                    <span>
-                      <I name="check" size={13} />
-                      业务与市场
-                    </span>
-                    <span>
-                      <I name="check" size={13} />
-                      数据与合规
-                    </span>
-                    <span>
-                      <I name="check" size={13} />
-                      模型与部署
-                    </span>
-                  </div>
+                  <ol>
+                    <li>
+                      <span>1</span>
+                      <div>
+                        <strong>企业画像</strong>
+                        <p>注册主体、总部、整体市场与目标</p>
+                      </div>
+                      <I name="check" size={15} />
+                    </li>
+                    <li>
+                      <span>2</span>
+                      <div>
+                        <strong>业务场景</strong>
+                        <p>逐项维护产品、数据、模型与阶段</p>
+                      </div>
+                      {businesses.length > 0 && <I name="check" size={15} />}
+                    </li>
+                    <li>
+                      <span>3</span>
+                      <div>
+                        <strong>业务政策关联</strong>
+                        <p>识别准入、数据跨境与许可核查事项</p>
+                      </div>
+                    </li>
+                    <li>
+                      <span>4</span>
+                      <div>
+                        <strong>战略行动清单</strong>
+                        <p>针对具体业务生成可追溯建议</p>
+                      </div>
+                    </li>
+                  </ol>
                   <button
-                    className="btn primary"
-                    onClick={() => navigate("company")}
+                    className="btn primary full"
+                    onClick={() => navigate("strategy")}
                   >
-                    建立企业画像
-                    <I name="arrow" size={15} />
+                    进入战略工作台
+                    <I name="arrow" size={14} />
                   </button>
-                </section>
+                </aside>
               </div>
-              <div className="context-note">
-                <I name="info" size={14} />
-                <span>
-                  GPAI 与 WAICO
-                  是治理协作视角，成员可能重叠。组织关系不直接等同于模型可用性、法律义务或地缘阵营。
-                </span>
-                <button onClick={() => navigate("sources")}>
-                  查看数据说明
-                </button>
-              </div>
-            </>
-          )}
-          {view === "map" && (
-            <>
-              <div className="map-view-grid">
-                <InsightMap
-                  countries={countries}
-                  selected={selected}
-                  onSelect={setSelected}
-                  bloc={bloc}
-                  onBloc={setBloc}
-                />
-                {countryCard(true)}
-              </div>
-              <section className="panel">
+              <section className="panel enterprise-policy-panel">
                 <div className="section-top">
                   <div>
-                    <h2>国家与地区观察清单</h2>
+                    <h2>
+                      <I name="radar" size={18} />
+                      与你的业务相关的政策风向
+                    </h2>
                     <p>
-                      已建档 {countries.length} 个国家 /
-                      地区；仅展示可核查与历史快照资料
+                      按业务市场、数据和模型条件匹配；公开资料每 60
+                      秒刷新，供进一步复核
                     </p>
                   </div>
-                  <span className="quiet-tag">名单持续核验</span>
+                  <button
+                    className="text-button"
+                    onClick={() => navigate("radar")}
+                  >
+                    查看政策风向
+                    <I name="arrow" size={14} />
+                  </button>
                 </div>
-                <div className="country-directory">
-                  {countries
-                    .filter(
-                      (c) => bloc === "全部" || c.organizations.includes(bloc),
-                    )
-                    .map((c) => (
-                      <button
-                        key={c.code}
-                        className={`country-tile ${selected.code === c.code ? "active" : ""}`}
-                        onClick={() => {
-                          setSelected(c);
-                          window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
-                      >
-                        <span>{c.flag}</span>
-                        <div>
-                          <strong>{c.name}</strong>
-                          <small>{c.region}</small>
-                        </div>
-                        <Badge
-                          tone={
-                            c.bloc === "GPAI"
-                              ? "blue"
-                              : c.bloc === "WAICO"
-                                ? "green"
-                                : "purple"
-                          }
-                        >
-                          {c.bloc}
-                        </Badge>
-                      </button>
-                    ))}
-                </div>
+                {signalList(
+                  (relatedPolicies.length
+                    ? relatedPolicies
+                    : featuredSignals
+                  ).slice(0, 3),
+                  true,
+                )}
               </section>
             </>
           )}
           {view === "radar" && (
             <>
+              <div className="policy-business-context panel">
+                <I name="building" size={18} />
+                <div>
+                  <strong>以业务视角筛选政策</strong>
+                  <p>选择业务后，查看按市场、数据和模型匹配的官方线索。</p>
+                </div>
+                <select
+                  aria-label="政策关联业务"
+                  value={selectedBusinessId}
+                  onChange={(e) => setSelectedBusinessId(e.target.value)}
+                >
+                  <option value="all">全部业务</option>
+                  {businesses.map((b) => (
+                    <option value={b.id} key={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {focusedBusinesses.length > 0 && (
+                <section className="panel matched-policies">
+                  <div className="section-top">
+                    <h2>关联业务的政策与技术信号</h2>
+                    <Badge tone="blue">
+                      {focusedBusinesses.length}项业务 ·{" "}
+                      {relatedPolicies.length}条线索
+                    </Badge>
+                  </div>
+                  {signalList(relatedPolicies.slice(0, 3), true)}
+                </section>
+              )}
               <div className="radar-search panel">
                 <div className="radar-search-main">
                   <I name="search" size={21} />
@@ -1542,159 +1798,269 @@ export function InsightApp() {
               </div>
             </>
           )}
-          {view === "models" && (
-            <>
-              <div className="models-top">
-                <div className="filter-tabs">
-                  {["全部模型", "闭源", "开放权重"].map((f) => (
-                    <button
-                      key={f}
-                      className={modelFilter === f ? "active" : ""}
-                      onClick={() => setModelFilter(f)}
-                    >
-                      {f}
-                    </button>
-                  ))}
+          {view === "businesses" && (
+            <div className="business-workspace">
+              <aside className="panel business-selection">
+                <div className="section-top">
+                  <h2>
+                    业务场景 <small>{businesses.length}</small>
+                  </h2>
+                  <button className="text-button" onClick={newBusiness}>
+                    <I name="plus" size={14} />
+                    新增
+                  </button>
                 </div>
-                <label className="model-search">
-                  <I name="search" size={15} />
-                  <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="搜索模型、公司、能力…"
-                    aria-label="搜索模型"
-                  />
-                </label>
-              </div>
-              <div className="model-grid">
-                {filteredModels.map((m, i) => (
-                  <article key={m.id} className="model-card panel">
-                    <div className="model-card-top">
-                      <span className={`model-logo model-logo-${i % 5}`}>
-                        {m.company.slice(0, 1)}
-                      </span>
-                      <div>
-                        <h2>{m.name}</h2>
-                        <span>
-                          {m.company} <span className="meta-dot">·</span>{" "}
-                          {m.country}
-                        </span>
-                      </div>
+                {businesses.map((b) => (
+                  <button
+                    key={b.id}
+                    className={`business-selection-item ${businessDraft?.id === b.id ? "active" : ""}`}
+                    onClick={() => {
+                      setBusinessDraft({ ...b });
+                      setBusinessDeleteId(null);
+                    }}
+                  >
+                    <span className="business-mark">
+                      <I
+                        name={b.name.includes("私有") ? "shield" : "models"}
+                        size={18}
+                      />
+                    </span>
+                    <div>
+                      <strong>{b.name}</strong>
+                      <small>{b.markets.join(" / ") || "市场待填写"}</small>
                       <Badge
-                        tone={m.openness === "开放权重" ? "green" : "blue"}
+                        tone={
+                          b.stage === "已上线"
+                            ? "green"
+                            : b.stage === "试点中"
+                              ? "blue"
+                              : "neutral"
+                        }
                       >
-                        {m.openness}
+                        {b.stage}
                       </Badge>
                     </div>
-                    <div className="model-strengths">
-                      {m.strengths.map((s) => (
-                        <Badge key={s}>{s}</Badge>
-                      ))}
+                    <I name="chevron" size={13} />
+                  </button>
+                ))}
+                <button className="business-add-button" onClick={newBusiness}>
+                  <I name="plus" size={16} />
+                  新增业务场景
+                </button>
+                <p className="business-storage-note">
+                  <I name="shield" size={13} />
+                  {user
+                    ? "业务信息保存至当前账户"
+                    : "演示数据仅保存在当前浏览器"}
+                </p>
+              </aside>
+              <section className="panel business-editor">
+                {businessDraft ? (
+                  <>
+                    <div className="section-top">
+                      <div>
+                        <h2>
+                          {businesses.some((b) => b.id === businessDraft.id)
+                            ? "维护业务场景"
+                            : "新增业务场景"}
+                        </h2>
+                        <p>
+                          描述业务实际运行方式，避免将企业整体情况套用于所有产品。
+                        </p>
+                      </div>
+                      <Badge tone="blue">
+                        {user ? "云端企业档案" : "本地演示档案"}
+                      </Badge>
                     </div>
-                    <dl className="model-facts">
-                      <div>
-                        <dt>部署方式</dt>
-                        <dd>{m.deployment}</dd>
-                      </div>
-                      <div>
-                        <dt>授权与使用</dt>
-                        <dd>{m.license}</dd>
-                      </div>
-                      <div>
-                        <dt>区域范围</dt>
-                        <dd>{m.regions}</dd>
-                      </div>
-                    </dl>
-                    <div className="model-caution">
-                      <I name="info" size={14} />
-                      <p>{m.considerations[0]}</p>
-                    </div>
-                    <div className="model-card-footer">
-                      <SourceLink href={m.sourceUrl}>供应商来源</SourceLink>
-                      <label className="compare-check">
-                        <input
-                          type="checkbox"
-                          checked={compared.includes(m.id)}
-                          onChange={() =>
-                            setCompared((p) =>
-                              p.includes(m.id)
-                                ? p.filter((id) => id !== m.id)
-                                : p.length < 3
-                                  ? [...p, m.id]
+                    <form className="company-form" onSubmit={saveBusiness}>
+                      <div className="form-grid">
+                        <label>
+                          业务名称
+                          <input
+                            required
+                            value={businessDraft.name}
+                            onChange={(e) =>
+                              setBusinessDraft((p) =>
+                                p ? { ...p, name: e.target.value } : p,
+                              )
+                            }
+                            placeholder="例如：全球模型 API 聚合"
+                          />
+                        </label>
+                        <label>
+                          业务阶段
+                          <select
+                            value={businessDraft.stage}
+                            onChange={(e) =>
+                              setBusinessDraft((p) =>
+                                p
+                                  ? {
+                                      ...p,
+                                      stage: e.target
+                                        .value as Business["stage"],
+                                    }
                                   : p,
+                              )
+                            }
+                          >
+                            <option>规划中</option>
+                            <option>试点中</option>
+                            <option>已上线</option>
+                          </select>
+                        </label>
+                      </div>
+                      <label>
+                        业务描述与客户
+                        <textarea
+                          rows={4}
+                          value={businessDraft.description}
+                          onChange={(e) =>
+                            setBusinessDraft((p) =>
+                              p ? { ...p, description: e.target.value } : p,
                             )
                           }
+                          placeholder="说明客户群体、价值、服务链路、运营主体和业务边界…"
                         />
-                        加入对比
                       </label>
+                      {[
+                        {
+                          key: "markets" as const,
+                          title: "业务市场",
+                          options: [
+                            "中国",
+                            "欧盟",
+                            "美国",
+                            "东南亚",
+                            "日本",
+                            "中东",
+                            "拉美",
+                            "非洲",
+                          ],
+                        },
+                        {
+                          key: "useCases" as const,
+                          title: "AI 使用场景",
+                          options: [
+                            "模型 API 路由",
+                            "开发者平台",
+                            "跨境 AI 服务",
+                            "知识检索",
+                            "业务自动化",
+                            "智能客服",
+                            "内容生成",
+                            "数据分析",
+                            "私有化部署",
+                          ],
+                        },
+                        {
+                          key: "dataTypes" as const,
+                          title: "涉及的数据类型",
+                          options: [
+                            "一般业务数据",
+                            "个人信息",
+                            "API 密钥",
+                            "商业秘密",
+                            "支付信息",
+                            "日志与调用记录",
+                          ],
+                        },
+                        {
+                          key: "models" as const,
+                          title: "使用或计划使用的模型",
+                          options: Array.from(
+                            new Set([
+                              ...aiModels.map((m) => m.name),
+                              ...businessDraft.models,
+                            ]),
+                          ),
+                        },
+                      ].map((field) => (
+                        <fieldset className="business-fieldset" key={field.key}>
+                          <legend>
+                            {field.title}
+                            <small>可多选</small>
+                          </legend>
+                          <div className="choice-grid">
+                            {field.options.map((option) => (
+                              <button
+                                type="button"
+                                key={option}
+                                className={`choice ${businessDraft[field.key].includes(option) ? "selected" : ""}`}
+                                onClick={() =>
+                                  toggleBusinessField(field.key, option)
+                                }
+                              >
+                                {businessDraft[field.key].includes(option) && (
+                                  <I name="check" size={13} />
+                                )}
+                                {field.key === "models" && (
+                                  <BrandLogo name={option} size={16} />
+                                )}
+                                <span>{option}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </fieldset>
+                      ))}
+                      <div className="form-footer business-form-footer">
+                        <div>
+                          {businesses.some(
+                            (b) => b.id === businessDraft.id,
+                          ) && (
+                            <button
+                              type="button"
+                              className={`business-delete ${businessDeleteId === businessDraft.id ? "confirm" : ""}`}
+                              onClick={() =>
+                                businessDeleteId === businessDraft.id
+                                  ? deleteBusiness(businessDraft.id)
+                                  : setBusinessDeleteId(businessDraft.id)
+                              }
+                            >
+                              <I name="close" size={13} />
+                              {businessDeleteId === businessDraft.id
+                                ? "确认删除此业务"
+                                : "删除业务"}
+                            </button>
+                          )}
+                        </div>
+                        <div>
+                          <button
+                            type="button"
+                            className="btn secondary"
+                            onClick={() => {
+                              setSelectedBusinessId(businessDraft.id);
+                              navigate("strategy");
+                            }}
+                            disabled={
+                              !businesses.some((b) => b.id === businessDraft.id)
+                            }
+                          >
+                            分析已保存业务
+                          </button>
+                          <button className="btn primary" disabled={busy}>
+                            {busy ? "正在保存…" : "保存业务场景"}
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  </>
+                ) : (
+                  <div className="business-editor-empty">
+                    <div className="large-icon blue">
+                      <I name="models" size={28} />
                     </div>
-                  </article>
-                ))}
-              </div>
-              {filteredModels.length === 0 && (
-                <div className="empty-state panel">
-                  <I name="search" size={30} />
-                  <h3>暂无匹配模型</h3>
-                  <p>试试模型名称或供应商名称。</p>
-                </div>
-              )}
-              {compared.length > 0 && (
-                <section className="panel compare-panel">
-                  <div className="section-top">
-                    <h2>
-                      模型对比 <small>{compared.length} / 3</small>
-                    </h2>
-                    <button
-                      className="text-button"
-                      onClick={() => setCompared([])}
-                    >
-                      清空对比
-                      <I name="close" size={14} />
+                    <h2>从具体业务，看清 AI 战略。</h2>
+                    <p>
+                      选择左侧业务进行维护，或新增一个业务场景。每项业务分别记录市场、用途、数据类型和模型依赖。
+                    </p>
+                    <button className="btn primary" onClick={newBusiness}>
+                      <I name="plus" size={15} />
+                      新增业务场景
                     </button>
                   </div>
-                  <div className="comparison-table">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>比较维度</th>
-                          {aiModels
-                            .filter((m) => compared.includes(m.id))
-                            .map((m) => (
-                              <th key={m.id}>{m.name}</th>
-                            ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(
-                          [
-                            ["供应商", "company"],
-                            ["开放程度", "openness"],
-                            ["部署方式", "deployment"],
-                            ["许可条件", "license"],
-                            ["区域范围", "regions"],
-                          ] as const
-                        ).map(([label, key]) => (
-                          <tr key={key}>
-                            <th>{label}</th>
-                            {aiModels
-                              .filter((m) => compared.includes(m.id))
-                              .map((m) => (
-                                <td key={m.id}>{m[key]}</td>
-                              ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-              )}
-              <div className="context-note">
-                <I name="info" size={15} />
-                <span>
-                  开放权重不等于无条件开源。模型目录展示代表性产品，正式选型前请复核最新许可、数据条款与服务地区。
-                </span>
-              </div>
-            </>
+                )}
+              </section>
+            </div>
           )}
           {view === "company" && (
             <>
@@ -1719,6 +2085,20 @@ export function InsightApp() {
                       当前为演示企业资料，你可以直接修改并保存。
                     </div>
                   )}
+                  <div className="company-business-link">
+                    <I name="models" size={16} />
+                    <span>
+                      已维护 {businesses.length}{" "}
+                      项业务场景，业务数据将随企业档案一同保存。
+                    </span>
+                    <button
+                      className="text-button"
+                      onClick={() => navigate("businesses")}
+                    >
+                      管理业务
+                      <I name="arrow" size={13} />
+                    </button>
+                  </div>
                   <form className="company-form" onSubmit={saveProfile}>
                     <div className="form-grid">
                       <label>
@@ -2037,6 +2417,36 @@ export function InsightApp() {
                         : "生成演示战略分析"}
                 </button>
               </section>
+              <div className="strategy-business-selector panel">
+                <div>
+                  <I name="models" size={19} />
+                  <div>
+                    <strong>本次分析对象</strong>
+                    <p>
+                      按业务选择进行分析，建议将结合业务市场、数据类型与模型依赖。
+                    </p>
+                  </div>
+                </div>
+                <select
+                  value={selectedBusinessId}
+                  onChange={(e) => setSelectedBusinessId(e.target.value)}
+                  aria-label="战略分析业务"
+                >
+                  <option value="all">全部业务（{businesses.length}项）</option>
+                  {businesses.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className="text-button"
+                  onClick={() => navigate("businesses")}
+                >
+                  维护业务
+                  <I name="arrow" size={13} />
+                </button>
+              </div>
               <div className="strategy-context">
                 <button onClick={() => navigate("company")}>
                   <I name="building" size={16} />
@@ -2118,6 +2528,54 @@ export function InsightApp() {
                       </p>
                     )}
                   </div>
+                  {strategy.businessInsights &&
+                    strategy.businessInsights.length > 0 && (
+                      <div className="business-insights">
+                        <h3>
+                          <I name="models" size={17} />
+                          业务与政策关联分析
+                        </h3>
+                        {strategy.businessInsights.map((item) => (
+                          <article
+                            className="business-insight-card"
+                            key={item.businessId}
+                          >
+                            <div className="business-insight-heading">
+                              <I name="building" size={18} />
+                              <h4>{item.businessName}</h4>
+                              <Badge tone="blue">业务专属</Badge>
+                            </div>
+                            <div className="business-insight-columns">
+                              <div>
+                                <span>风险暴露</span>
+                                <p>{item.exposure}</p>
+                              </div>
+                              <div>
+                                <span>潜在机会</span>
+                                <p>{item.opportunity}</p>
+                              </div>
+                            </div>
+                            <div className="business-action-list">
+                              {item.actions.map((action, index) => (
+                                <p key={index}>
+                                  <I name="check" size={13} />
+                                  {action}
+                                </p>
+                              ))}
+                            </div>
+                            <div className="business-policy-evidence">
+                              {item.sourceUrls.map((url, index) => (
+                                <SourceLink key={index} href={url}>
+                                  {policyFeed.find(
+                                    (signal) => signal.sourceUrl === url,
+                                  )?.title || `关联政策来源 ${index + 1}`}
+                                </SourceLink>
+                              ))}
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    )}
                   <div className="generated-grid">
                     <div>
                       <h3>建议行动</h3>
@@ -2256,9 +2714,12 @@ export function InsightApp() {
                 <div className="section-top">
                   <div>
                     <h2>证据来源清单</h2>
-                    <p>政策事实以官方发布为准；技术产品以供应商文档为准。</p>
+                    <p>
+                      与主站共用公开信息源，每 60
+                      秒读取最新已收录资料。政策事实以官方发布为准，社交线索保持待核实。
+                    </p>
                   </div>
-                  <Badge>{signals.length} 条收录资料</Badge>
+                  <Badge>{policyFeed.length} 条收录资料</Badge>
                 </div>
                 <div className="source-table">
                   <table>
@@ -2272,7 +2733,7 @@ export function InsightApp() {
                       </tr>
                     </thead>
                     <tbody>
-                      {signals.map((s) => (
+                      {policyFeed.map((s) => (
                         <tr key={s.id}>
                           <td>
                             <button onClick={() => setDetail(s)}>

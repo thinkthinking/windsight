@@ -1,6 +1,6 @@
 # windsight 观风
 
-面向全球化企业的 AI 战略情报工作空间。以 GPAI、WAICO 及相关国家的政策与技术生态为观察入口，将原始来源、模型选型与企业业务场景连接起来。
+公开政策主站 + 企业战略工作台。主站以 GPAI、WAICO 及相关国家的政策时间轴与地图事件为核心；企业后台维护企业及具体业务，将政策风向与业务暴露、模型依赖和行动建议连接起来。
 
 2026 年比赛赛道 B 作品。团队：windsight；王丽婷（复旦大学）、叶震杰（蚂蚁集团）。
 
@@ -17,7 +17,7 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-打开 http://localhost:3000 。默认进入免登录演示账号，可浏览全球态势、治理版图、政策与技术情报、模型与公司，修改并在当前浏览器保存虚拟企业、生成规则建议及导出简报。页面始终注明演示身份；不伪装为真实 Supabase 登录。
+打开 http://localhost:3000 查看公开政策时间轴与地图；进入 `/console`（`/platform` 同时可跳转）使用企业工作台。后台默认免登录演示账号，可维护企业与多个业务场景、生成按业务区分的规则建议、导出简报。页面始终注明演示身份。
 
 ```bash
 pnpm typecheck
@@ -39,13 +39,14 @@ pnpm start
 
 ### Supabase 数据隔离
 
-执行 [docs/database-schema.sql](docs/database-schema.sql) 建立 3 个专用表。现有部署已经创建这些表；换新项目时再执行即可。表名刻意使用独立前缀，不修改共享数据库中其他项目的表、函数或 Auth 设置。
+执行 [docs/database-schema.sql](docs/database-schema.sql) 建立 4 个专用表。现有部署已经创建这些表；换新项目时再执行即可。表名刻意使用独立前缀，不修改共享数据库中其他项目的表、函数或 Auth 设置。
 
 - `windinsight_companies`：每个用户的企业档案（JSONB）。
 - `windinsight_reports`：策略生成结果和时间。
 - `windinsight_searches`：检索结果和来源。
+- `windinsight_public_events`：公开主站的来源事件、发布日期和入库时间。
 
-3 表均启用 RLS，只允许 `auth.uid() = user_id` 的用户读写自己的行。匿名用户无表权限。用户会话由 Supabase Auth 校验，凭证保存在 HttpOnly、SameSite=Lax Cookie 中，生产环境启用 Secure；支持过期会话刷新。企业数据访问使用用户 JWT，不使用 secret/service-role 绕过隔离。
+3 张企业表均启用 RLS，只允许 `auth.uid() = user_id` 的用户读写自己的行。匿名用户无企业表权限。公开表 `windinsight_public_events` 仅开放匿名/用户读取；只有项目所有者的独立入库脚本能发布全站事件。用户会话由 Supabase Auth 校验，凭证保存在 HttpOnly、SameSite=Lax Cookie 中，生产环境启用 Secure；支持过期会话刷新。企业数据访问使用用户 JWT，不使用 secret/service-role 绕过隔离。
 
 比赛评审默认使用本地演示账号，无需注册，也不需要评审密码。切换真实账户后，已有 Supabase 用户可以直接登录；邮箱注册是否需要验证遵循该共享项目原设置，本项目不更改全局 Auth 配置。演示模式不访问其他人的云端企业资料。真实账号的密码不放进源码。
 
@@ -53,12 +54,12 @@ pnpm start
 
 演示企业为虚拟的 Meridian AI：中国创始团队在新加坡注册，向全球开发者提供 AI 聚合、模型 API 路由与用量管理服务。它不是对任何真实公司的背景调查。
 
-1. 在「全球态势」「治理版图」查看国家、组织归属、政策摘要、来源和证据时间；共同成员单独标识。
-2. 在「情报雷达」检索与过滤政策、技术和数据安全信号，打开详情追溯原始来源；可收藏。
-3. 在「模型与公司」比较开放权重与托管 API，核对版本许可、地区支持和部署方式。
-4. 进入「企业画像」，载入虚拟企业或手填业务区域、用途、数据敏感度和部署偏好；演示账号保存在本浏览器，真实登录后可保存云端。
-5. 在「情报雷达」通过演示账号查看已捕获的 X 检索快照（清楚标记历史来源），也可切换真实登录执行新检索。真实检索可能耗时约一分钟。
-6. 在「战略建议」生成企业分析，查看优先事项、风险、候选模型和证据来源，导出简报。
+1. 公开首页按日期浏览 GPAI/WAICO 动向，筛选组织或政策/技术类别；选择时间轴事件可定位地图，点击地图事件点可定位相应动态。
+2. 打开事件原始来源，区分发布日期、入库核验时间和待核实社媒信号。主站每60秒读取已入库动态；并未宣称自动完成全网采集。
+3. 进入 `/console`，默认演示账号维护 Meridian AI 企业信息。
+4. 在「业务场景」增删改 API 聚合服务、企业私有 AI 网关等业务；记录业务市场、AI用途、数据类型、阶段和模型依赖。演示数据保存在本浏览器，真实登录后保存云端。
+5. 在「政策风向」查看与业务匹配的政策，在「战略建议」选择一个业务或全部业务，生成分业务暴露、机会和行动清单，核对来源并导出。
+6. 真实账户可执行 Grok AI 分析与 X 新检索；演示账户可查看实际检索捕获的历史快照，清楚标注并非本次实时搜索。
 
 核心差异：**注册地、创始人背景、实际用户地区、数据处理地点、上游转售条款需要分别核验。** GPAI/WAICO 组织成员身份不能直接推导模型可用性或合规结论。
 
@@ -66,9 +67,11 @@ pnpm start
 
 | 能力 | 当前状态 |
 | --- | --- |
+| 公开时间轴与地图事件联动 | 已实现，双组织/类别/搜索过滤，按分钟同步入库资料 |
 | 国家地图、双组织视角、国家详情 | 已实现；人工整理的有日期资料 |
 | 政策技术情报、筛选、来源详情、收藏 | 已实现；收藏保存在本浏览器 |
 | 模型公司目录与比较 | 已实现；候选资料须按版本复核 |
+| 业务场景管理与分业务策略 | 已实现，业务市场/数据/模型/阶段及逐业务建议 |
 | 默认演示账号 | 已实现；免注册、本浏览器档案与规则分析，明确演示身份 |
 | 邮箱登录、企业档案保存和用户隔离 | 已实现，Supabase Auth + RLS |
 | X 实时检索 | 已接通 ZenMux Grok；需登录且有有效 Key |
@@ -90,6 +93,7 @@ pnpm start
 
 | 方法/路径 | 输入 | 输出 |
 | --- | --- | --- |
+| `GET /api/feed` | 无需登录 | 公开事件、国家、组织、入库与核验时间 |
 | `GET /api/session` | Cookie | `{user}` |
 | `POST /api/auth` | `{action: "signIn" / "signUp" / "signOut",email?,password?}` | `{user,message?}` |
 | `GET /api/company` | Cookie | `{profile,updatedAt}` |
@@ -98,11 +102,11 @@ pnpm start
 | `POST /api/strategy` | `{profile,signals?:[]}` | summary / recommendations / risks / models / sources / mode |
 | `GET /api/reports` | Cookie | 当前用户最近15份历史报告 |
 
-企业 `profile` 字段：`name,website,industry,headquarters,markets[],useCases[],dataSensitivity,deployment,description`。
+企业 `profile` 字段：`name,website,industry,headquarters,markets[],useCases[],dataSensitivity,deployment,description,businesses[]`。业务字段为 `id,name,description,markets[],useCases[],dataTypes[],models[],stage`；策略可传 `selectedBusinessId` 单独分析。
 
 ## AI 接口与 Prompt 设计
 
-调用端点：`https://zenmux.ai/api/v1/responses`，模型 `x-ai/grok-4.7`。X 检索使用 `tools: [{type: "x_search"}]`；没有执行工具或没有平台引用时，不能标记为已验证实时情报。请求有超时、检索时间窗口、数量和输出长度限制。
+调用端点：`https://zenmux.ai/api/v1/responses`，模型 `x-ai/grok-4.7`。AI 品牌标识来自用户指定的 `@zenmux/icons@0.1.6`，按品牌单独导入。X 检索使用 `tools: [{type: "x_search"}]`；没有执行工具或没有平台引用时，不能标记为已验证实时情报。请求有超时、检索时间窗口、数量和输出长度限制。
 
 Prompt 及结构化校验见 [lib/zenmux.ts](lib/zenmux.ts)：
 
@@ -135,3 +139,8 @@ Prompt 及结构化校验见 [lib/zenmux.ts](lib/zenmux.ts)：
 - 本地 `output/submission/` 包含比赛材料、演示账户等私有输出，不会被 Git 追踪。
 
 项目不自动发送提交邮件，由参赛者最终核对后自行发送。联系方式仅出现在私下提交材料中。
+
+
+## 公开动态入库
+
+项目所有者可运行 `node --env-file=.env.local scripts/publish-public-feed.mjs` 发布已核验官方资料与明确标记的社媒快照。此脚本仅在本地使用 `SUPABASE_SECRET_KEY`，不得将该密钥部署到浏览器。公共 API 每次读取数据库、保留来源与日期，数据库不可用时诚实回退种子资料。无人值守定时采集和人工核验工作台仍是后续能力。

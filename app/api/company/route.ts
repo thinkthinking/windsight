@@ -1,4 +1,5 @@
 import { requireUser } from "@/lib/auth";
+import { IntelligenceError, validateCompanyProfile } from "@/lib/zenmux";
 
 export async function GET(request: Request) {
   const { user, error, client } = await requireUser(request);
@@ -23,40 +24,19 @@ export async function POST(request: Request) {
   const { user, error, client } = await requireUser(request);
   if (!user || !client) return error!;
   try {
-    const { profile } = await request.json();
-    if (
-      !profile ||
-      typeof profile !== "object" ||
-      typeof profile.name !== "string" ||
-      !profile.name.trim() ||
-      JSON.stringify(profile).length > 20000
-    )
+    if (Number(request.headers.get("content-length")) > 64_000)
       return Response.json(
-        { error: "请填写企业名称，档案内容不超过 20000 字符" },
-        { status: 400 },
+        { error: "企业档案内容不超过 64000 字符。" },
+        { status: 413 },
       );
-    const strings = [
-      "name",
-      "website",
-      "industry",
-      "headquarters",
-      "dataSensitivity",
-      "deployment",
-      "description",
-    ];
-    const clean: Record<string, string | string[]> = {};
-    for (const key of strings)
-      clean[key] =
-        typeof profile[key] === "string"
-          ? profile[key].slice(0, 4000).trim()
-          : "";
-    for (const key of ["markets", "useCases"])
-      clean[key] = Array.isArray(profile[key])
-        ? profile[key]
-            .filter((v: unknown) => typeof v === "string")
-            .slice(0, 30)
-            .map((v: string) => v.slice(0, 100))
-        : [];
+    const text = await request.text();
+    if (text.length > 64_000)
+      return Response.json(
+        { error: "企业档案内容不超过 64000 字符。" },
+        { status: 413 },
+      );
+    const body = JSON.parse(text);
+    const clean = validateCompanyProfile(body?.profile);
     const { error: dbError } = await client
       .from("windinsight_companies")
       .upsert(
@@ -73,7 +53,12 @@ export async function POST(request: Request) {
         { status: 503 },
       );
     return Response.json({ profile: clean, message: "企业档案已安全保存" });
-  } catch {
+  } catch (error) {
+    if (error instanceof IntelligenceError)
+      return Response.json(
+        { error: error.message, code: error.code },
+        { status: error.status },
+      );
     return Response.json({ error: "档案格式无效" }, { status: 400 });
   }
 }

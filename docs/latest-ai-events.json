@@ -1,0 +1,199 @@
+[
+  {
+    "id": "deepseek-search-api-20261017",
+    "title": "DeepSeek 开放自研搜索与网页获取 API",
+    "summary": "DeepSeek 10 月 17 日更新日志宣布开放自研搜索 API，官方说明提供网页搜索与获取能力，并链接 Search & Fetch 使用指南。",
+    "date": "2026-10-17",
+    "country": "CN",
+    "countryName": "中国",
+    "category": "技术模型",
+    "impact": "中",
+    "source": "DeepSeek API 官方变更日志",
+    "sourceUrl": "https://api-docs.deepseek.com/updates/#opening-up-the-in-house-search-api",
+    "tags": [
+      "DeepSeek",
+      "搜索API",
+      "企业检索"
+    ],
+    "implication": "企业检索可增加候选供应商。搜索结果仍需证据核验，接入前检查价格、限额、内容获取条件和数据处理路径。",
+    "status": "已核实"
+  },
+  {
+    "id": "deepseek-flash-1017-20261017",
+    "title": "DeepSeek V4.1 Flash 更新为 1017 版本",
+    "summary": "10 月 17 日官方日志确认 API、网页与应用更新至 DeepSeek-V4.1-Flash-1017，API 可继续使用 deepseek-flash，调用方式与价格不变。",
+    "date": "2026-10-17",
+    "country": "CN",
+    "countryName": "中国",
+    "category": "技术模型",
+    "impact": "高",
+    "source": "DeepSeek API 官方变更日志",
+    "sourceUrl": "https://api-docs.deepseek.com/updates/#deepseek-v41-flash-1017-update",
+    "tags": [
+      "DeepSeek",
+      "模型更新",
+      "API版本"
+    ],
+    "implication": "使用浮动模型名的企业应重跑关键任务评测并记录实际版本。官方基准是供应商报告，不能替代业务验证或证明权重许可。",
+    "status": "已核实"
+  },
+  {
+    "id": "openai-gpt6-pro-chatgpt-20261016",
+    "title": "ChatGPT 中的 GPT-6 Pro 改进工具使用与并行任务",
+    "summary": "OpenAI 10 月 16 日发布说明介绍 ChatGPT 聊天页中 GPT-6 Pro 的响应、插件/工具与多智能体任务改进，向符合资格的 Pro 用户推出。",
+    "date": "2026-10-16",
+    "country": "US",
+    "countryName": "美国",
+    "category": "技术模型",
+    "impact": "中",
+    "source": "OpenAI ChatGPT 官方发布说明",
+    "sourceUrl": "https://help.openai.com/en/articles/6825453-chatgpt-release-notes",
+    "tags": [
+      "ChatGPT",
+      "应用更新",
+      "多智能体"
+    ],
+    "implication": "适合评估内部工作流。该公告不构成同名 API、批量转售或企业工作空间可用性承诺，须单独核验账户和管理员设置。",
+    "status": "已核实"
+  },
+  {
+    "id": "openai-live-prompt-voice-api-20261016",
+    "title": "OpenAI 向 API 客户开放文字描述创建语音",
+    "summary": "10 月 16 日 API 变更日志宣布 prompt-to-voice，可用文字描述创建声音并在 GPT-Live 会话复用，同时增加多语言语音选项。",
+    "date": "2026-10-16",
+    "country": "US",
+    "countryName": "美国",
+    "category": "技术模型",
+    "impact": "中",
+    "source": "OpenAI API 官方变更日志",
+    "sourceUrl": "https://developers.openai.com/api/docs/changelog#october-2026",
+    "tags": [
+      "语音API",
+      "GPT-Live",
+      "多语言"
+    ],
+    "implication": "语音业务可评估新的声音工作流；生成语音仍按会话规则计费，需核对授权、告知和适用服务地区。",
+    "status": "已核实"
+  },
+  {
+    "id": "qwen-code-collaboration-20261015",
+    "title": "Qwen Code 新增跨工具智能体协作实验功能",
+    "summary": "Qwen 团队 10 月 15 日周报介绍 v0.25.1 与 v0.25.2，新增把 Claude Code 或 Codex 作为协作队友加入会话的实验能力，默认关闭。",
+    "date": "2026-10-15",
+    "country": "CN",
+    "countryName": "中国",
+    "category": "技术模型",
+    "impact": "中",
+    "source": "Qwen Code 官方文档",
+    "sourceUrl": "https://qwenlm.github.io/qwen-code-docs/en/blog/updates/weekly-update-2026-10-15/",
+    "tags": [
+      "Qwen Code",
+      "智能体协作",
+      "开发工具"
+    ],
+    "implication": "适合试点跨工具研发协作。跨供应商协作仍需各自合法服务资格，并检查代码、上下文、工具权限及远程机器访问边界。",
+    "status": "已核实"
+  },
+  {
+    "id": "anthropic-singapore-office-20261014",
+    "title": "Anthropic 在新加坡开设办公室并签署政府合作备忘录",
+    "summary": "Anthropic 10 月 14 日宣布新加坡办公室开业，并与新加坡数码发展及新闻部签署合作备忘录，涉及 AI 安全、评估和负责任采用。",
+    "date": "2026-10-14",
+    "country": "SG",
+    "countryName": "新加坡",
+    "category": "国际合作",
+    "impact": "高",
+    "source": "Anthropic 官方公告",
+    "sourceUrl": "https://www.anthropic.com/news/singapore-office-opening",
+    "tags": [
+      "Anthropic",
+      "新加坡",
+      "区域部署",
+      "X原帖已关联"
+    ],
+    "implication": "本地支持和区域内推理值得评估，但办公室与合作备忘录不代表取消支持区域、企业资格或转售约束。",
+    "status": "已核实",
+    "relatedSources": [
+      {
+        "title": "Anthropic 官方 X 原帖（本次检索）",
+        "url": "https://x.com/AnthropicAI/status/2110289695888511368"
+      }
+    ]
+  },
+  {
+    "id": "google-gemini4-argon-app-20261013",
+    "title": "Gemini 4 Argon 开始向 Gemini 应用付费用户推出",
+    "summary": "Google 10 月 13 日发布说明称，Gemini 4 Argon 开始向 Gemini 应用的 Google AI Pro 与 Ultra 订阅者推出。",
+    "date": "2026-10-13",
+    "country": "US",
+    "countryName": "美国",
+    "category": "技术模型",
+    "impact": "中",
+    "source": "Google Gemini 官方发布说明",
+    "sourceUrl": "https://gemini.google/release-notes/",
+    "tags": [
+      "Gemini",
+      "应用发布",
+      "模型动态"
+    ],
+    "implication": "可作为员工效率工具的评估线索。这是消费应用更新，不能据此认定企业 API 已开放、可转售或具备特定区域数据驻留。",
+    "status": "已核实"
+  },
+  {
+    "id": "anthropic-usage-policy-20261008",
+    "title": "Anthropic 发布使用政策更新，11 月 12 日生效",
+    "summary": "10 月 8 日公告明确更新政策将于 11 月 12 日生效，并澄清高风险用途和支持区域规则，包括实际所在地、设立/总部地点以及多数所有权或控制关系。",
+    "date": "2026-10-08",
+    "country": "US",
+    "countryName": "美国",
+    "category": "市场准入",
+    "impact": "高",
+    "source": "Anthropic 官方公告",
+    "sourceUrl": "https://www.anthropic.com/news/2026-usage-policy-update",
+    "tags": [
+      "使用政策",
+      "服务资格",
+      "生效日期"
+    ],
+    "implication": "新加坡注册企业仍需核验实际控制、客户及使用地点。不能仅凭创始团队国籍或注册地做确定判断；公告日与生效日应分别记录。",
+    "status": "已核实"
+  },
+  {
+    "id": "openai-sol-ultrafast-api-20261008",
+    "title": "GPT-6.1 Sol 在 Responses API 增加 Ultrafast 模式",
+    "summary": "10 月 8 日 API 日志增加 GPT-6.1 Sol Ultrafast 模式，说明支持全球处理以及美国、欧盟数据驻留，仍受速率限制。",
+    "date": "2026-10-08",
+    "country": "US",
+    "countryName": "美国",
+    "category": "数据安全",
+    "impact": "高",
+    "source": "OpenAI API 官方变更日志",
+    "sourceUrl": "https://developers.openai.com/api/docs/changelog#october-2026",
+    "tags": [
+      "数据驻留",
+      "API",
+      "低延迟"
+    ],
+    "implication": "低延迟业务可比较处理区域与驻留选项，但不能推定所有服务层、工具或模型均支持相同地区，成本与合同条件应单独确认。",
+    "status": "已核实"
+  },
+  {
+    "id": "mistral-large4-preview-20261006",
+    "title": "Mistral Large 4 开启公开预览，权重计划月底发布",
+    "summary": "Mistral 10 月 6 日宣布 Large 4 公开预览及预览 API，并表示计划在当月底发布权重。公告同时强调其欧洲基础设施。",
+    "date": "2026-10-06",
+    "country": "FR",
+    "countryName": "法国",
+    "category": "技术模型",
+    "impact": "高",
+    "source": "Mistral AI 官方公告",
+    "sourceUrl": "https://mistral.ai/news/mistral-large-4/",
+    "tags": [
+      "Mistral",
+      "预览API",
+      "开放权重计划"
+    ],
+    "implication": "可新增欧洲模型候选。截至本次核验日期，不能把月底权重发布计划写成已交付；许可、自托管文件与生产服务承诺需另查。",
+    "status": "已核实"
+  }
+]

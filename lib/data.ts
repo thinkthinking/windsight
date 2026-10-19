@@ -35,6 +35,7 @@ export type Signal = {
   tags: string[];
   status: "已核实" | "待核实";
   implication: string;
+  relatedSources?: Source[];
 };
 export type AIModel = {
   id: string;

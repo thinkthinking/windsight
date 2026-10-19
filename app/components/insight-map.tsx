@@ -1,9 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { worldPaths } from "./insight-world-data";
 import { I } from "./insight-icons";
-import type { Country } from "@/lib/data";
+import type { Country, Signal } from "@/lib/data";
+
+// Coordinates align with the existing world SVG; event points are geographic guides.
+const eventPoints: Record<string, [number, number]> = {
+  CN: [713, 131],
+  US: [211, 119],
+  EU: [467, 88],
+  FR: [457, 95],
+  SG: [707, 204],
+  JP: [784, 118],
+  IN: [652, 155],
+  GB: [443, 76],
+  DE: [476, 83],
+  KR: [770, 116],
+  BR: [311, 242],
+  ZA: [511, 282],
+  AU: [788, 277],
+  ID: [738, 216],
+  CA: [201, 74],
+};
 
 export function InsightMap({
   countries,
@@ -11,16 +30,35 @@ export function InsightMap({
   onSelect,
   bloc,
   onBloc,
+  events,
+  selectedEvent,
+  onSelectEvent,
 }: {
   countries: Country[];
   selected: Country;
   onSelect: (country: Country) => void;
   bloc: string;
   onBloc: (bloc: string) => void;
+  events?: Signal[];
+  selectedEvent?: string;
+  onSelectEvent?: (event: Signal) => void;
 }) {
   const [zoom, setZoom] = useState(1);
   const [hover, setHover] = useState<string | null>(null);
-  const countryMap = new Map(countries.map((c) => [c.code, c]));
+  const countryMap = useMemo(
+    () => new Map(countries.map((c) => [c.code, c])),
+    [countries],
+  );
+  const eventGroups = useMemo(() => {
+    const groups = new Map<string, Signal[]>();
+    for (const event of events ?? []) {
+      if (!eventPoints[event.country]) continue;
+      const existing = groups.get(event.country) ?? [];
+      existing.push(event);
+      groups.set(event.country, existing);
+    }
+    return [...groups.entries()];
+  }, [events]);
   return (
     <div className="world-panel">
       <div className="map-toolbar">
@@ -122,31 +160,74 @@ export function InsightMap({
             <text x="769" y="330" className="continent-label">
               大洋洲
             </text>
-            <g className="map-city">
-              <circle cx="741" cy="108" r="5" />
-              <circle cx="741" cy="108" r="11" className="map-city-ring" />
-              <text x="755" y="112">
-                北京
-              </text>
-            </g>
-            <g className="map-city">
-              <circle cx="189" cy="114" r="4" />
-              <text x="161" y="103">
-                华盛顿
-              </text>
-            </g>
-            <g className="map-city">
-              <circle cx="456" cy="84" r="4" />
-              <text x="468" y="83">
-                巴黎
-              </text>
-            </g>
-            <g className="map-city">
-              <circle cx="709" cy="204" r="4" />
-              <text x="722" y="208">
-                新加坡
-              </text>
-            </g>
+            {!events && (
+              <g className="map-city">
+                <circle cx="741" cy="108" r="5" />
+                <circle cx="741" cy="108" r="11" className="map-city-ring" />
+                <text x="755" y="112">
+                  北京
+                </text>
+              </g>
+            )}
+            {!events && (
+              <g className="map-city">
+                <circle cx="189" cy="114" r="4" />
+                <text x="161" y="103">
+                  华盛顿
+                </text>
+              </g>
+            )}
+            {!events && (
+              <g className="map-city">
+                <circle cx="456" cy="84" r="4" />
+                <text x="468" y="83">
+                  巴黎
+                </text>
+              </g>
+            )}
+            {!events && (
+              <g className="map-city">
+                <circle cx="709" cy="204" r="4" />
+                <text x="722" y="208">
+                  新加坡
+                </text>
+              </g>
+            )}
+            {eventGroups.map(([code, group]) => {
+              const active = group.find((event) => event.id === selectedEvent);
+              const event = active ?? group[0];
+              const [x, y] = eventPoints[code];
+              const isWaico = countryMap
+                .get(code)
+                ?.organizations.includes("WAICO");
+              return (
+                <g
+                  key={code}
+                  transform={`translate(${x},${y})`}
+                  className={`public-map-event ${active ? "is-selected" : ""} ${isWaico ? "is-waico" : ""}`}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${event.countryName}，${group.length}条动态：${event.title}`}
+                  aria-pressed={!!active}
+                  onClick={() => onSelectEvent?.(event)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onSelectEvent?.(event);
+                    }
+                  }}
+                >
+                  <circle className="event-hit-area" r="16" />
+                  <circle className="event-halo" r={active ? 15 : 11} />
+                  <circle className="event-core" r={active ? 7 : 5} />
+                  <text x="13" y="4">
+                    {event.countryName}
+                    {group.length > 1 ? ` ${group.length}` : ""}
+                  </text>
+                  <title>{`${event.date} ${event.title}`}</title>
+                </g>
+              );
+            })}
           </g>
         </svg>
         {hover && <div className="map-hover-label">{hover}</div>}

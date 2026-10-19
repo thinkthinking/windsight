@@ -26,3 +26,16 @@ create policy "windinsight_reports_owner" on public.windinsight_reports for all 
 create policy "windinsight_searches_owner" on public.windinsight_searches for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 grant select,insert,update,delete on public.windinsight_companies, public.windinsight_reports, public.windinsight_searches to authenticated;
 revoke all on public.windinsight_companies, public.windinsight_reports, public.windinsight_searches from anon;
+
+-- Public policy timeline: curated public facts and explicitly marked social leads.
+-- Anonymous users can read, but cannot publish or alter global events.
+create table if not exists public.windinsight_public_events (
+  id text primary key,
+  payload jsonb not null,
+  published_at timestamptz,
+  updated_at timestamptz not null default now()
+);
+alter table public.windinsight_public_events enable row level security;
+create policy "windinsight_public_events_read" on public.windinsight_public_events for select to anon, authenticated using (true);
+revoke all on public.windinsight_public_events from anon, authenticated;
+grant select on public.windinsight_public_events to anon, authenticated;

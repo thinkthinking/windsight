@@ -11,6 +11,24 @@ export type Source = {
   checkedAt?: string;
 };
 export type StrategyEvidence = Source & { summary: string };
+export type CompanyBusiness = {
+  id: string;
+  name: string;
+  description: string;
+  markets: string[];
+  useCases: string[];
+  dataTypes: string[];
+  models: string[];
+  stage: "规划中" | "试点中" | "已上线";
+};
+export type BusinessInsight = {
+  businessId: string;
+  businessName: string;
+  exposure: string;
+  opportunity: string;
+  actions: string[];
+  sourceUrls: string[];
+};
 export type CompanyProfile = {
   name: string;
   website?: string;
@@ -21,6 +39,7 @@ export type CompanyProfile = {
   dataSensitivity?: string;
   deployment?: string;
   description?: string;
+  businesses?: CompanyBusiness[];
 };
 export type IntelligenceSignal = {
   id: string;
@@ -36,6 +55,7 @@ export type IntelligenceSignal = {
   verification: "social_signal" | "unverified";
 };
 export type StrategyReport = {
+  businessInsights?: BusinessInsight[];
   summary: string;
   recommendations: {
     title: string;
@@ -149,7 +169,7 @@ async function response(input: string, search = false, days = 7) {
         input,
         store: false,
         text: { format: { type: "json_object" } },
-        max_output_tokens: search ? 3200 : 4000,
+        max_output_tokens: search ? 3200 : 6000,
         ...(search
           ? {
               tools: [{ type: "x_search", from_date: from, to_date: to }],
@@ -309,13 +329,131 @@ GPAI与WAICO不是互斥阵营，不推定成员身份。
   };
 }
 
+function stringList(value: unknown, max = 20, itemLimit = 160): string[] {
+  return [
+    ...new Set(
+      list(value)
+        .slice(0, max)
+        .map((entry) => str(entry, itemLimit))
+        .filter(Boolean),
+    ),
+  ];
+}
+
+export function selectStrategyProfile(
+  profile: CompanyProfile,
+  selectedBusinessId?: string,
+): CompanyProfile {
+  if (!selectedBusinessId) return profile;
+  const business = profile.businesses?.find(
+    (entry) => entry.id === selectedBusinessId,
+  );
+  if (!business)
+    throw new IntelligenceError(
+      "选择的业务不存在，请刷新企业画像后重试。",
+      400,
+      "INVALID_BUSINESS_SELECTION",
+    );
+  return { ...profile, businesses: [business] };
+}
+
+/** Market matching includes each business; company registration is only contextual geography. */
+export function strategyMarketCodes(profile: CompanyProfile): string[] {
+  const geography = [
+    ...(profile.markets ?? []),
+    profile.headquarters ?? "",
+    ...(profile.businesses ?? []).flatMap((business) => business.markets),
+  ].join(" ");
+  if (/全球|global|world/i.test(geography))
+    return ["CN", "US", "EU", "SG", "JP", "FR", "IN"];
+  return [
+    ...(/中国|china|\bCN\b/i.test(geography) ? ["CN"] : []),
+    ...(/美国|united states|\bUS\b|\bUSA\b/i.test(geography) ? ["US"] : []),
+    ...(/欧盟|欧洲|德国|法国|europe|germany|france|\bEU\b|\bDE\b|\bFR\b/i.test(
+      geography,
+    )
+      ? ["EU"]
+      : []),
+    ...(/新加坡|东南亚|singapore|southeast asia|\bSG\b|\bASEAN\b/i.test(
+      geography,
+    )
+      ? ["SG"]
+      : []),
+    ...(/日本|japan|\bJP\b/i.test(geography) ? ["JP"] : []),
+    ...(/法国|france|\bFR\b/i.test(geography) ? ["FR"] : []),
+    ...(/印度|india|\bIN\b/i.test(geography) ? ["IN"] : []),
+  ];
+}
+
+/** Public-feed records are owner-published. Social URLs never become official snapshots. */
+export function publicEvidenceSnapshot(
+  value: unknown,
+  checkedAt?: string,
+): StrategyEvidence | null {
+  const item = object(value);
+  const url = safeUrl(item.sourceUrl);
+  if (!url || !str(item.title)) return null;
+  const social = /(^|\.)(x\.com|twitter\.com)$/i.test(new URL(url).hostname);
+  return {
+    title: `${str(item.source, 120) || "公开来源"} · ${str(item.title, 180)}`,
+    url,
+    summary: `${str(item.summary, 1600)}${str(item.implication) ? ` 企业含义：${str(item.implication, 1200)}` : ""}`,
+    date: str(item.date, 40) || undefined,
+    sourceType:
+      item.status === "已核实" && !social
+        ? "official_snapshot"
+        : "social_signal",
+    checkedAt,
+  };
+}
+
 export function validateCompanyProfile(value: unknown): CompanyProfile {
   const item = object(value);
   const name = str(item.name, 160);
   if (!name)
     throw new IntelligenceError("请先填写企业名称。", 400, "INVALID_PROFILE");
+  if (item.businesses != null && !Array.isArray(item.businesses))
+    throw new IntelligenceError(
+      "业务信息应为列表。",
+      400,
+      "INVALID_BUSINESSES",
+    );
+  if (list(item.businesses).length > 20)
+    throw new IntelligenceError(
+      "最多维护 20 项业务，请先合并或移除部分业务。",
+      400,
+      "INVALID_BUSINESSES",
+    );
+  const seenIds = new Set<string>();
+  const businesses: CompanyBusiness[] = list(item.businesses).map(
+    (value, index) => {
+      const business = object(value);
+      const id = str(business.id, 120) || `business-${index + 1}`;
+      const businessName = str(business.name, 160);
+      if (!businessName || seenIds.has(id))
+        throw new IntelligenceError(
+          "每项业务需要名称和唯一标识，请检查业务列表。",
+          400,
+          "INVALID_BUSINESSES",
+        );
+      seenIds.add(id);
+      return {
+        id,
+        name: businessName,
+        description: str(business.description, 2000),
+        markets: stringList(business.markets),
+        useCases: stringList(business.useCases),
+        dataTypes: stringList(business.dataTypes),
+        models: stringList(business.models),
+        stage: (["规划中", "试点中", "已上线"].includes(str(business.stage))
+          ? str(business.stage)
+          : "规划中") as CompanyBusiness["stage"],
+      };
+    },
+  );
   return {
     name,
+    businesses,
     website: str(item.website, 300),
     industry: str(item.industry, 160),
     headquarters: str(item.headquarters, 160),
@@ -338,15 +476,59 @@ export function ruleStrategy(
   notice = "基于企业档案与通用决策规则生成，未执行实时检索。",
 ): StrategyReport {
   const sensitive =
-    !!profile.dataSensitivity && profile.dataSensitivity !== "一般业务数据";
-  const crossBorder = (profile.markets?.length ?? 0) > 1;
+    (!!profile.dataSensitivity && profile.dataSensitivity !== "一般业务数据") ||
+    (profile.businesses ?? []).some((business) =>
+      /个人|敏感|隐私|机密|健康|金融|生物识别/i.test(
+        business.dataTypes.join(" "),
+      ),
+    );
+
+  const businessMarkets = [
+    ...new Set([
+      ...(profile.markets ?? []),
+      ...(profile.businesses ?? []).flatMap((business) => business.markets),
+    ]),
+  ];
+  const crossBorder = businessMarkets.length > 1;
   const privateDeployment = profile.deployment?.includes("私有") || sensitive;
   const aggregator = /聚合|路由|aggregat|openrouter|zenmux/i.test(
-    [profile.industry, profile.description, ...(profile.useCases ?? [])].join(
-      " ",
-    ),
+    [
+      profile.industry,
+      profile.description,
+      ...(profile.useCases ?? []),
+      ...(profile.businesses ?? []).flatMap((business) => [
+        business.name,
+        business.description,
+        ...business.useCases,
+      ]),
+    ].join(" "),
   );
   return {
+    businessInsights: (profile.businesses ?? []).map((business) => {
+      const markets = business.markets.length
+        ? business.markets
+        : (profile.markets ?? []);
+      const sensitiveData = /个人|敏感|隐私|机密|健康|金融|生物识别/i.test(
+        business.dataTypes.join(" "),
+      );
+      return {
+        businessId: business.id,
+        businessName: business.name,
+        exposure: `${business.stage}业务面向${markets.join("、") || "待补充市场"}，需分别核对模型服务区域、客户数据处理与供应商条款。${sensitiveData ? "涉及个人信息或敏感数据，需记录采集、推理、存储及人员访问路径。" : "当前数据分类仍需由业务负责人确认。"}`,
+        opportunity: `${business.useCases.join("、") || business.name}可从可评估的任务开展试点，比较区域内托管与开放权重部署。模型能力和商业价值仍需用业务数据验证。`,
+        actions: [
+          `由业务负责人确认${business.name}的目标市场、数据类型与上下游处理主体。`,
+          `逐项核验${business.models.join("、") || "候选模型"}的具体版本、服务区域、许可及数据条款。`,
+          sensitiveData
+            ? "先执行数据最小化和脱敏，再评估区域隔离、访问审计与人工复核。"
+            : "设置任务质量、人工复核和成本指标，完成小规模验证后决定上线。",
+          business.stage === "已上线"
+            ? "为现有客户建立模型替换和服务中断预案，变更前复核合同承诺。"
+            : "上线前完成采购、法务与技术负责人联合确认，记录尚未解决的假设。",
+        ],
+        sourceUrls: [],
+      };
+    }),
     summary: `${profile.name}适合采用“按区域治理、按数据分级、按场景选模”的 AI 策略。${aggregator ? "作为全球 AI 聚合平台，新加坡注册地不自动解除上游供应商对客户、地域、转售及最终用途的限制，应在每次路由前完成准入校验。" : crossBorder ? "跨区域业务应建立独立的数据处理与模型访问边界。" : "先从低敏感、可评估的业务场景开展试点。"}${sensitive ? "涉及个人信息或敏感业务数据时，优先评估本地处理与去标识化。" : "通过受控 API 试点验证效果和成本。"}`,
     recommendations: [
       {
@@ -467,11 +649,48 @@ export async function generateStrategy(
       checkedAt,
     }),
   );
-  const baseline = { ...ruleStrategy(profile), sources };
-  const fallback = (notice: string): StrategyReport => ({
-    ...ruleStrategy(profile, notice),
+  const attachBusinessSources = (report: StrategyReport): StrategyReport => ({
+    ...report,
     sources,
+    businessInsights: report.businessInsights?.map((insight) => {
+      const business = profile.businesses?.find(
+        (entry) => entry.id === insight.businessId,
+      );
+      const codes = business
+        ? strategyMarketCodes({
+            name: profile.name,
+            markets: business.markets.length
+              ? business.markets
+              : profile.markets,
+          })
+        : [];
+      const matching = trustedEvidence.filter((entry) => {
+        const text = `${entry.title} ${entry.summary}`;
+        return codes.some((code) =>
+          (
+            ({
+              CN: /中国|网信|Qwen|DeepSeek/i,
+              US: /美国|Anthropic|OpenAI|BIS|白宫/i,
+              EU: /欧盟|欧洲|AI Act/i,
+              SG: /新加坡|IMDA/i,
+              JP: /日本|METI/i,
+              FR: /法国|Mistral/i,
+              IN: /印度|India/i,
+            }) as Record<string, RegExp>
+          )[code]?.test(text),
+        );
+      });
+      return {
+        ...insight,
+        sourceUrls: (matching.length ? matching : trustedEvidence)
+          .slice(0, 4)
+          .map((entry) => entry.url),
+      };
+    }),
   });
+  const baseline = attachBusinessSources(ruleStrategy(profile));
+  const fallback = (notice: string): StrategyReport =>
+    attachBusinessSources(ruleStrategy(profile, notice));
   if (!process.env.ZENMUX_API_KEY)
     return fallback(
       "ZenMux 尚未配置，当前展示规则建议与提供的来源快照；未执行实时检索。",
@@ -485,7 +704,8 @@ export async function generateStrategy(
 来源类型 official_snapshot 为人工核验的官方历史快照，social_signal 为未交叉核实的社媒线索。仅根据提供的快照引用具体政策和供应商条件，说明日期与是否需要复核，不能声称本次已访问或已验证官网。用户提交的链接不视为官方核实。请在相关建议中用“据某来源的某日期快照”连接证据和企业行动，不将过期政策推定仍然有效。
 基于档案与通用知识提供可执行、审慎的策略建议。企业可能为虚拟演示公司，不要爬取或编造真实公司资料。没有联网，不要宣称已搜索官网、已收集企业信息、已验证政策或最新模型可用性。不要断言具体国家当前法律义务；写需要核验的事项。GPAI与WAICO非互斥阵营，不要臆测成员身份。
 若是中国团队在新加坡注册、面向全球的AI聚合或路由平台：必须说明新加坡注册不自动解除上游对客户、实际使用地区、最终用途及转售的限制；建议逐次路由前准入检查，禁止用备用路由绕过供应商限制；清点数据实际处理地区和子处理者；PDPA/GDPR/PIPL适用按具体处理活动与业务触发判断，不能按团队国籍判断；开源自部署同时评估版本许可、服务化权限和硬件供应链条件。
-仅输出中文JSON，字段：summary(字符串), recommendations(3至5个{title,detail,priority:高/中/低}), risks(2至4个{title,detail,level:高/中/低}), models(2至3个{name,fit,caution})。聚焦地域可用性、数据安全、开源许可、混合部署、模型替代与AI治理。建议模型须作为待评估候选，不能保证合规。不要生成来源链接。`,
+当档案包含 businesses 时，必须逐项分析每个已提供业务，不新增业务、不混淆业务 ID。每项结合其 markets、useCases、dataTypes、models、stage，说明政策与数据暴露、商业/技术机会、模型或供应商依赖以及可执行行动。公司级市场可作为业务市场为空时的补充。不同业务必须体现实际输入差异，不能只改名称复述同一结论。
+仅输出中文JSON，增加 businessInsights 数组（每项{businessId:原始业务id,businessName:原始名称,exposure:政策暴露与供应商依赖,opportunity:该业务机会与需要验证的假设,actions:字符串数组,sourceUrls:仅来自系统来源快照的URL数组}）；没有业务时数组为空。其他字段：summary(字符串), recommendations(3至5个{title,detail,priority:高/中/低}), risks(2至4个{title,detail,level:高/中/低}), models(2至3个{name,fit,caution})。聚焦地域可用性、数据安全、开源许可、混合部署、模型替代与AI治理。建议模型须作为待评估候选，不能保证合规。不要编造链接；sourceUrls 只能复制系统提供快照中的URL。`,
       false,
     );
     const parsed = parseJson(result.text);
@@ -535,8 +755,54 @@ export async function generateStrategy(
       return fallback(
         "AI 内容未完整生成，当前展示规则建议与提供的来源快照；未执行实时检索。",
       );
+    const allowedUrls = new Set(sources.map((source) => source.url));
+    const parsedBusinessInsights = list(parsed.businessInsights);
+    if (
+      (profile.businesses ?? []).some((business) => {
+        const item = object(
+          parsedBusinessInsights.find(
+            (value) => object(value).businessId === business.id,
+          ),
+        );
+        return (
+          !str(item.exposure) ||
+          !str(item.opportunity) ||
+          !stringList(item.actions).length
+        );
+      })
+    )
+      return fallback(
+        "AI 未完整覆盖所选业务，当前展示逐业务规则建议与来源快照；本次未执行实时检索。",
+      );
+    const businessInsights = (profile.businesses ?? []).map((business) => {
+      const item = object(
+        parsedBusinessInsights.find(
+          (value) => object(value).businessId === business.id,
+        ),
+      );
+      const rule = baseline.businessInsights?.find(
+        (entry) => entry.businessId === business.id,
+      );
+      const actions = stringList(item.actions, 6, 1000);
+      if (
+        (!str(item.exposure) || !str(item.opportunity) || !actions.length) &&
+        rule
+      )
+        return rule;
+      return {
+        businessId: business.id,
+        businessName: business.name,
+        exposure: str(item.exposure, 2000),
+        opportunity: str(item.opportunity, 1600),
+        actions,
+        sourceUrls: stringList(item.sourceUrls, 6, 2000).filter((url) =>
+          allowedUrls.has(url),
+        ),
+      };
+    });
     return {
       ...baseline,
+      businessInsights,
       summary: str(parsed.summary, 2500),
       recommendations,
       risks,
