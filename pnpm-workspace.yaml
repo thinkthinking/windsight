@@ -3,3 +3,6 @@ packages:
 allowBuilds:
   sharp: false
   unrs-resolver: false
+# Keep Vercel's pnpm release-age policy intact; 8.5.31 is too recent.
+overrides:
+  '@tailwindcss/postcss>postcss': 8.5.30

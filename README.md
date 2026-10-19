@@ -6,7 +6,7 @@
 
 ## 快速运行
 
-需要 Node.js 20.9+（建议 22）与 pnpm。
+需要 Node.js 20.9+（建议 22）与 pnpm 12.5.1。部署与本地使用同一版本；若全局 pnpm 较旧，可用 `npx pnpm@12.5.1 install` 安装。
 
 ```bash
 pnpm install
