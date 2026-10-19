@@ -1,11 +1,11 @@
-import Openai from "@zenmux/icons/openai";
-import Claude from "@zenmux/icons/claude";
-import Deepseek from "@zenmux/icons/deepseek";
-import Qwen from "@zenmux/icons/qwen";
-import Mistral from "@zenmux/icons/mistral";
-import Gemini from "@zenmux/icons/gemini";
-import Meta from "@zenmux/icons/meta";
-import Grok from "@zenmux/icons/grok";
+import Openai from "@zenmux/icons/Openai";
+import Claude from "@zenmux/icons/Claude";
+import Deepseek from "@zenmux/icons/Deepseek";
+import Qwen from "@zenmux/icons/Qwen";
+import Mistral from "@zenmux/icons/Mistral";
+import Gemini from "@zenmux/icons/Gemini";
+import Meta from "@zenmux/icons/Meta";
+import Grok from "@zenmux/icons/Grok";
 
 /** Per-brand imports keep the catalog out of the client bundle. */
 export function BrandLogo({
