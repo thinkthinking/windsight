@@ -51,3 +51,10 @@ GPAI 与 WAICO 不是互斥军事/政治同盟。成员关系不能直接推出�
 - 模型能力使用“候选”描述，必须通过企业自己的数据与任务评测后选型。
 - 当前没有系统性覆盖各国全部法律，也没有作任何公司在具体交易中合规的判断。
 - 检索失败、证据不足、企业信息缺失或政策冲突应触发人工确认，不补造法律结论。
+
+
+## 地图几何来源与归属
+
+世界其他区域使用 Natural Earth；中国整体范围使用 [DataV GeoAtlas 中国全域几何](https://geo.datav.aliyun.com/areas_v3/bound/100000.json)。[阿里云文档](https://help.aliyun.com/zh/datav/datav-6-0/user-guide/datav-geoatlas-widget/)说明 GeoAtlas 行政区域数据来自高德。中国全域几何保留全部277个组成部分，台湾、香港、澳门均归入统一的 CN 国家对象；西藏、新疆包含在中国整体范围内，不增加特别地区标签。替换后移除旧底图的独立台湾/香港/澳门以及对应重复岛礁对象，中国几何置于上层避免旧边线穿透。
+
+重建脚本：`node scripts/update-china-map.mjs`；回归验证：`node --test tests/map-integrity.test.mjs`。此来源不是自然资源部直接发布的标准地图文件，不编造或套用审图号。

@@ -72,7 +72,10 @@ export function InsightMap({
             }}
           >
             {worldPaths.map((p) => {
-              const c = countryMap.get(p.code);
+              const c = countryMap.get(
+                ["TW", "HK", "MO"].includes(p.code) ? "CN" : p.code,
+              );
+              const displayName = c?.name || p.name;
               const member =
                 c && (bloc === "全部" || c.organizations.includes(bloc));
               return (
@@ -80,7 +83,7 @@ export function InsightMap({
                   key={`${p.code}-${p.name}`}
                   d={p.path}
                   className={`country-shape ${member ? (c.bloc === "共同成员" ? "joint" : c.bloc === "GPAI" ? "gpai" : c.bloc === "WAICO" ? "waico" : "") : ""} ${c?.code === selected.code ? "selected" : ""}`}
-                  onMouseEnter={() => setHover(c ? c.name : p.name)}
+                  onMouseEnter={() => setHover(displayName)}
                   onMouseLeave={() => setHover(null)}
                   onClick={() => c && onSelect(c)}
                   role={c ? "button" : undefined}
@@ -92,10 +95,12 @@ export function InsightMap({
                     }
                   }}
                   aria-label={
-                    c ? `${c.name}，${c.bloc}，查看国家画像` : undefined
+                    c ? `${displayName}，${c.bloc}，查看国家画像` : undefined
                   }
                 >
-                  <title>{c ? `${c.name} · ${c.bloc}` : p.name}</title>
+                  <title>
+                    {c ? `${displayName} · ${c.bloc}` : displayName}
+                  </title>
                 </path>
               );
             })}
@@ -162,7 +167,9 @@ export function InsightMap({
             <I name="globe" size={15} />
           </button>
         </div>
-        <div className="map-attribution">Natural Earth · 组织关系示意</div>
+        <div className="map-attribution">
+          地理示意 · Natural Earth / GeoAtlas
+        </div>
       </div>
       <div className="map-snapshot-note">
         <I name="info" size={13} />

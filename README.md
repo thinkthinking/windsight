@@ -116,7 +116,7 @@ Prompt 及结构化校验见 [lib/zenmux.ts](lib/zenmux.ts)：
 
 ## 数据与来源
 
-种子数据见 [lib/data.ts](lib/data.ts)，资料说明见 [docs/research-sources.md](docs/research-sources.md)。地图使用 Natural Earth 世界国界数据，保留来源说明；国界仅作为信息索引，不表达法律立场。GPAI 指 Global Partnership on Artificial Intelligence，注意与欧盟法律里的 general-purpose AI 缩写区分。
+种子数据见 [lib/data.ts](lib/data.ts)，资料说明见 [docs/research-sources.md](docs/research-sources.md)。世界底图使用 Natural Earth，中国整体范围使用 DataV GeoAtlas 的中国全域几何，统一为 CN 着色及交互；不将台湾、香港、澳门作为独立国家对象。保留数据来源说明。GPAI 指 Global Partnership on Artificial Intelligence，注意与欧盟法律里的 general-purpose AI 缩写区分。
 
 治理信息按证据截至日期呈现，当前覆盖数据不是实时完整数据库。历史 WAICO 名单、最新组织规模和逐项核验状态分别处理，避免以组织身份替代国家法律与供应商条件分析。
 
