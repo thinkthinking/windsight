@@ -391,7 +391,7 @@ export function EnterpriseAtlas() {
           </span>
         </Link>
         <ViewSwitch active="enterprise" />
-        <button className="ea-account" onClick={openSettings}>
+        <button className="ea-account" onClick={openSettings} aria-label="企业设置" title="企业设置">
           <span className="ea-account-copy">
             <strong>{enterprise.name.replace("（虚拟企业）", "")}</strong>
             <small>{user ? "企业账号" : "演示企业 · 免注册"}</small>
@@ -511,10 +511,6 @@ export function EnterpriseAtlas() {
             <span>
               地图展示治理关系与业务观察视角；服务可用性按供应商地区、所有权、终端用户和合同条件单独核验。
             </span>
-            <button onClick={openSettings}>
-              维护企业与业务
-              <I name="chevron" size={13} />
-            </button>
           </div>
         </section>
         {event && (
