@@ -12,6 +12,7 @@ import {
   type Organization,
 } from "@/lib/data";
 import { InsightMap } from "./insight-map";
+import { ViewSwitch } from "./view-switch";
 import { I, WindLogo } from "./insight-icons";
 import "./public-tracker.css";
 import latestEvents from "@/docs/latest-ai-events.json";
@@ -203,154 +204,34 @@ export function PublicTracker() {
               windsight<span>观风</span>
             </strong>
           </Link>
-          <nav aria-label="主导航">
-            <a className="wi-public-nav-active" href="#public-timeline">
-              全球动态
-            </a>
-            <button onClick={() => setSourceOpen((open) => !open)}>
-              关于来源
-            </button>
-          </nav>
-          <Link href="/console" className="wi-public-console">
-            <I name="building" size={15} />
-            企业工作台
-            <I name="arrow" size={15} />
-          </Link>
+          <ViewSwitch active="public" />
+          <span className="wi-public-header-status" aria-live="polite">
+            {checkedAt ? `资料核对 ${checkedTime(checkedAt)}` : "公开资料快照"}
+          </span>
         </div>
       </header>
 
       <main className="wi-public-main">
-        <div className="wi-public-heading">
-          <div>
-            <h1>全球 AI 政策与技术动态</h1>
-            <p>追踪 GPAI 与 WAICO 相关国家的政策、模型和合作动向。</p>
-          </div>
-          <div className="wi-public-refresh-area">
-            <button
-              className="wi-public-refresh"
-              onClick={() => void refresh()}
-              disabled={refreshing}
-            >
-              <I
-                name="refresh"
-                size={14}
-                className={refreshing ? "wi-public-spinning" : ""}
-              />
-              {refreshing ? "正在刷新" : "刷新动态"}
-            </button>
-            <span aria-live="polite">
-              {checkedAt
-                ? `核对于 ${checkedTime(checkedAt)}`
-                : "已收录资料快照"}
-            </span>
-          </div>
-        </div>
-
-        {sourceOpen ? (
-          <section className="wi-public-source-note" aria-label="来源说明">
-            <I name="source" size={18} />
-            <div>
-              <strong>以原始证据记录变化</strong>
-              <p>
-                时间轴按事件和来源日期排序，历史资料不会被标成今日新闻。官方资料为已核验的来源快照；X
-                等社媒线索单独标注待核实。页面每分钟读取一次已入库动态，目前未启用自动持续采集。
-              </p>
-              <div>
-                {feed.organizations.map((organization) => (
-                  <a
-                    key={organization.id}
-                    href={organization.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {organization.id} 官方来源
-                    <I name="external" size={11} />
-                  </a>
-                ))}
-              </div>
-            </div>
-            <button
-              onClick={() => setSourceOpen(false)}
-              aria-label="关闭来源说明"
-            >
-              <I name="close" size={17} />
-            </button>
-          </section>
-        ) : null}
-
-        <div className="wi-public-filters">
-          <div
-            className="wi-public-org-filter"
-            role="group"
-            aria-label="组织筛选"
-          >
-            {["全部", "GPAI", "WAICO"].map((item) => (
-              <button
-                key={item}
-                aria-pressed={bloc === item}
-                className={bloc === item ? "is-active" : ""}
-                onClick={() => {
-                  setBloc(item);
-                  setCountryOverride(null);
-                }}
-              >
-                {item === "全部" ? (
-                  "全部组织"
-                ) : (
-                  <>
-                    <i className={item.toLowerCase()} />
-                    {item}
-                  </>
-                )}
-              </button>
-            ))}
-          </div>
-          <div
-            className="wi-public-category-filter"
-            role="group"
-            aria-label="动态类别"
-          >
-            {categoryOptions.map((item) => (
-              <button
-                key={item}
-                aria-pressed={category === item}
-                className={category === item ? "is-active" : ""}
-                onClick={() => setCategory(item)}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-          <label className="wi-public-search">
-            <I name="search" size={15} />
-            <input
-              aria-label="搜索国家、政策或模型"
-              placeholder="搜索国家、政策或模型"
-              value={keyword}
-              onChange={(event) => setKeyword(event.target.value)}
-            />
-            {keyword ? (
-              <button onClick={() => setKeyword("")} aria-label="清空搜索">
-                <I name="close" size={13} />
-              </button>
-            ) : null}
-          </label>
-        </div>
-        {refreshError ? (
-          <p className="wi-public-feed-error" role="status">
-            {refreshError}
-            <button onClick={() => void refresh()}>重试</button>
-          </p>
-        ) : null}
-
         <div className="wi-public-content">
           <section className="wi-public-map-section" aria-label="全球动态地图">
             <div className="wi-public-map-heading">
-              <h2>
-                <I name="globe" size={16} />
-                全球版图
-              </h2>
-              <span>点击事件点，定位相关动态</span>
+              <div className="wi-public-map-title">
+                <h1>全球 AI 政策风向</h1>
+                <span>GPAI 与 WAICO · 政策、模型与合作动向</span>
+              </div>
+              <button
+                className="wi-public-map-refresh"
+                onClick={() => void refresh()}
+                disabled={refreshing}
+                aria-label="刷新已入库动态"
+              >
+                <I
+                  name="refresh"
+                  size={14}
+                  className={refreshing ? "wi-public-spinning" : ""}
+                />
+                <span>{refreshing ? "刷新中" : "刷新动态"}</span>
+              </button>
             </div>
             <InsightMap
               countries={feed.countries}
@@ -433,6 +314,71 @@ export function PublicTracker() {
             id="public-timeline"
             aria-label="AI 政策与技术动态时间轴"
           >
+            <div className="wi-public-filters">
+              <div
+                className="wi-public-org-filter"
+                role="group"
+                aria-label="组织筛选"
+              >
+                {["全部", "GPAI", "WAICO"].map((item) => (
+                  <button
+                    key={item}
+                    aria-pressed={bloc === item}
+                    className={bloc === item ? "is-active" : ""}
+                    onClick={() => {
+                      setBloc(item);
+                      setCountryOverride(null);
+                    }}
+                  >
+                    {item === "全部" ? (
+                      "全部组织"
+                    ) : (
+                      <>
+                        <i className={item.toLowerCase()} />
+                        {item}
+                      </>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <div
+                className="wi-public-category-filter"
+                role="group"
+                aria-label="动态类别"
+              >
+                {categoryOptions.map((item) => (
+                  <button
+                    key={item}
+                    aria-pressed={category === item}
+                    className={category === item ? "is-active" : ""}
+                    onClick={() => setCategory(item)}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+              <label className="wi-public-search">
+                <I name="search" size={15} />
+                <input
+                  aria-label="搜索国家、政策或模型"
+                  placeholder="搜索国家、政策或模型"
+                  value={keyword}
+                  onChange={(event) => setKeyword(event.target.value)}
+                />
+                {keyword ? (
+                  <button onClick={() => setKeyword("")} aria-label="清空搜索">
+                    <I name="close" size={13} />
+                  </button>
+                ) : null}
+              </label>
+            </div>
+            {refreshError ? (
+              <p className="wi-public-feed-error" role="status">
+                {refreshError}
+                <button onClick={() => void refresh()}>重试</button>
+              </p>
+            ) : null}
+
             <div className="wi-public-timeline-heading">
               <h2>
                 动态时间轴<span>{visible.length} 条</span>
@@ -552,12 +498,43 @@ export function PublicTracker() {
             </div>
           </section>
         </div>
+        {sourceOpen ? (
+          <section className="wi-public-source-note" aria-label="来源说明">
+            <I name="source" size={18} />
+            <div>
+              <strong>以原始证据记录变化</strong>
+              <p>
+                时间轴按事件和来源日期排序，历史资料不会被标成今日新闻。官方资料为已核验的来源快照；X
+                等社媒线索单独标注待核实。页面每分钟读取一次已入库动态，目前未启用自动持续采集。
+              </p>
+              <div>
+                {feed.organizations.map((organization) => (
+                  <a
+                    key={organization.id}
+                    href={organization.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {organization.id} 官方来源
+                    <I name="external" size={11} />
+                  </a>
+                ))}
+              </div>
+            </div>
+            <button
+              onClick={() => setSourceOpen(false)}
+              aria-label="关闭来源说明"
+            >
+              <I name="close" size={17} />
+            </button>
+          </section>
+        ) : null}
+
         <footer className="wi-public-footer">
           <span>windsight 观风 · 让全球 AI 决策有据可循</span>
           <button
             onClick={() => {
-              setSourceOpen(true);
-              window.scrollTo({ top: 0, behavior: "smooth" });
+              setSourceOpen((open) => !open);
             }}
           >
             数据与来源说明
