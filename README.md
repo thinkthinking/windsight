@@ -4,6 +4,8 @@
 
 2026 年比赛赛道 B 作品。团队：windsight；王丽婷（复旦大学）、叶震杰（蚂蚁集团）。
 
+[在线体验（默认免登录演示账号）](https://windsight-teal.vercel.app) · [15 页产品介绍](https://windsight-teal.vercel.app/pitch/)
+
 ## 快速运行
 
 需要 Node.js 20.9+（建议 22）与 pnpm 12.5.1。部署与本地使用同一版本；若全局 pnpm 较旧，可用 `npx pnpm@12.5.1 install` 安装。
