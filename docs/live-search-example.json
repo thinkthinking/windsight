@@ -1,0 +1,45 @@
+{
+  "query": "from:OpenAI (release OR launch OR GPT) -is:retweet",
+  "signals": [
+    {
+      "id": "live-1792395189816-0",
+      "title": "OpenAI升级ChatGPT中GPT-6 Astra Pro并支持多智能体并行",
+      "summary": "OpenAI宣布GPT-6 Astra Pro在ChatGPT中获得升级，响应更快，插件与工具使用得到改进，且多个智能体可并行处理任务的不同部分，用户可跟踪各智能体进度并查看已完成工作。现已向Pro用户在Chat标签中开放。此为产品功能更新线索，或影响使用Pro的企业工作流效率，但不能据此认定任何法律义务。",
+      "region": "美国",
+      "category": "模型动态",
+      "organization": "其他",
+      "impact": "中",
+      "publishedAt": "2026-10-16T20:27:13Z",
+      "sourceUrl": "https://x.com/i/status/2111192259073094035",
+      "sourceName": "OpenAI",
+      "verification": "social_signal"
+    },
+    {
+      "id": "live-1792395189816-1",
+      "title": "OpenAI推出GPT-Live-1.1语音更新并新增多语言声音",
+      "summary": "OpenAI发布GPT-Live-1.1，为ChatGPT、Codex和dots的语音功能带来新声音、更好口音，并减少“checking...”提示，新增法语、德语、印地语、墨西哥西班牙语、韩语和日语声音。即日起向所有用户推出，即将登陆API。此为产品更新线索，或改善多语言语音交互，但不能据此认定任何法律义务。",
+      "region": "美国",
+      "category": "模型动态",
+      "organization": "其他",
+      "impact": "中",
+      "publishedAt": "2026-10-15T18:19:54Z",
+      "sourceUrl": "https://x.com/i/status/2110797830361436604",
+      "sourceName": "OpenAI",
+      "verification": "social_signal"
+    }
+  ],
+  "candidates": [],
+  "sources": [
+    {
+      "title": "https://x.com/i/status/2110797830361436604",
+      "url": "https://x.com/i/status/2110797830361436604"
+    },
+    {
+      "title": "https://x.com/i/status/2111192259073094035",
+      "url": "https://x.com/i/status/2111192259073094035"
+    }
+  ],
+  "generatedAt": "2026-10-19T07:32:09.296Z",
+  "mode": "live",
+  "notice": "X 社媒线索已关联检索来源；尚未完成官方文件交叉核实，不构成合规结论。"
+}

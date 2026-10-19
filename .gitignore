@@ -42,3 +42,8 @@ next-env.d.ts
 
 # Local package-manager cache
 .pnpm-store/
+
+# Private competition deliverables and local QA
+/output/
+/tmp/
+!.env.example

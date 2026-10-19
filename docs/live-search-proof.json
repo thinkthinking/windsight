@@ -1,0 +1,35 @@
+{
+  "observedAt": "2026-10-19",
+  "model": "x-ai/grok-4.7",
+  "status": "completed",
+  "toolUsage": {
+    "web_search_calls": 0,
+    "x_search_calls": 1,
+    "x_posts_fetched": 2,
+    "x_users_fetched": 0,
+    "code_interpreter_calls": 0,
+    "file_search_calls": 0,
+    "mcp_calls": 0,
+    "document_search_calls": 0,
+    "image_generation_calls": 0
+  },
+  "text": "OpenAI posted about GPT-6 Astra Pro upgrades with parallel agents and GPT-Live-1.1 voice updates. \nhttps://x.com/OpenAI/status/2111192259073094035 \nhttps://x.com/OpenAI/status/2110797830361436604",
+  "citations": [
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2111192259073094035",
+      "start_index": 0,
+      "end_index": 0,
+      "title": "https://x.com/i/status/2111192259073094035"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2110797830361436604",
+      "start_index": 0,
+      "end_index": 0,
+      "title": "https://x.com/i/status/2110797830361436604"
+    }
+  ],
+  "verification": "social_signal",
+  "notice": "真实小额接口探针；帖子内容尚未经官方文件交叉验证，仅用于验证X搜索链路。"
+}
