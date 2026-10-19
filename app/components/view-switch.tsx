@@ -3,66 +3,55 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
-import { I } from "./insight-icons";
 import "./view-switch.css";
 
 type Perspective = "public" | "enterprise";
 export function ViewSwitch({ active }: { active: Perspective }) {
   const router = useRouter();
-  const [pending, setPending] = useState<Perspective | null>(null);
+  const [moving, setMoving] = useState(false);
   const timer = useRef<number | null>(null);
+  const target = active === "public" ? "enterprise" : "public";
+  const destination = target === "public" ? "/" : "/console";
+  const label =
+    target === "public" ? "切换到全球政策监测" : "切换到企业政策地图";
   useEffect(() => {
-    document.documentElement.classList.remove(
-      "wi-switch-public",
-      "wi-switch-enterprise",
-    );
+    document.documentElement.classList.remove("wi-portal-transition");
     return () => {
       if (timer.current) window.clearTimeout(timer.current);
     };
   }, [active]);
-  function switchTo(event: MouseEvent<HTMLAnchorElement>, target: Perspective) {
+  function switchTo(event: MouseEvent<HTMLAnchorElement>) {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
       return;
     event.preventDefault();
-    if (target === active || pending) return;
-    const destination = target === "public" ? "/" : "/console";
+    if (moving) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       router.push(destination);
       return;
     }
-    setPending(target);
-    document.documentElement.classList.add(`wi-switch-${target}`);
-    timer.current = window.setTimeout(() => router.push(destination), 260);
+    setMoving(true);
+    document.documentElement.classList.add("wi-portal-transition");
+    timer.current = window.setTimeout(() => router.push(destination), 440);
   }
-  const selected = pending || active;
   return (
-    <nav
-      className={`wi-view-switch ${active === "enterprise" ? "on-dark" : "on-light"} selected-${selected}`}
-      aria-label="切换政策地图视角"
+    <Link
+      href={destination}
+      className={`wi-view-switch wi-perspective-toggle ${moving ? "is-moving" : ""}`}
+      onClick={switchTo}
+      aria-label={label}
+      title={label}
     >
-      <span className="wi-view-thumb" aria-hidden="true" />
-      <Link
-        href="/"
-        aria-current={active === "public" ? "page" : undefined}
-        onClick={(event) => switchTo(event, "public")}
-      >
-        <I name="globe" size={18} />
-        <span>
-          <strong>全球政策监测</strong>
-          <small>公开视角 · Public</small>
-        </span>
-      </Link>
-      <Link
-        href="/console"
-        aria-current={active === "enterprise" ? "page" : undefined}
-        onClick={(event) => switchTo(event, "enterprise")}
-      >
-        <I name="building" size={18} />
-        <span>
-          <strong>企业政策地图</strong>
-          <small>企业视角 · Enterprise</small>
-        </span>
-      </Link>
-    </nav>
+      <span className="wi-portal-icon" aria-hidden="true">
+        <i className="wi-portal-aura" />
+        <i className="wi-portal-orbit orbit-a" />
+        <i className="wi-portal-orbit orbit-b" />
+        <i className="wi-portal-orbit orbit-c" />
+        <i className="wi-portal-core" />
+        <i className="wi-portal-star" />
+      </span>
+      <span className="wi-portal-tooltip">
+        {target === "enterprise" ? "进入企业视角" : "回到全球视角"}
+      </span>
+    </Link>
   );
 }

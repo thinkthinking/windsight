@@ -35,7 +35,7 @@ export const businessRisks: BusinessRisk[] = [
     id: "anthropic-regions-control",
     title: "Claude 同时核验使用地区与多数所有权或控制关系",
     summary:
-      "当前 Supported Regions 政策未列中国大陆、俄罗斯，并约束不受支持地区的实际使用、设立/总部及多数拥有或控制关系。10 月 8 日公告另称更新 Usage Policy 于 11 月 12 日生效。新加坡注册不自动满足资格，团队国籍也不足以单独判断。",
+      "Anthropic 已公布的地区政策更新于 2026-11-12 生效，涉及地区、设立/总部及多数拥有或控制关系。当前资格仍需依据现行合同与供应商支持信息核验，不能将尚未生效条款直接当作今日结论。新加坡注册或团队国籍均不足以单独判断。",
     markets: ["中国", "中国大陆", "俄罗斯", "新加坡", "全球"],
     providers: ["Anthropic", "Claude"],
     severity: "high",

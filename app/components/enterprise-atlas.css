@@ -1,35 +1,30 @@
 .enterprise-atlas {
-  --ea-bg: #080f19;
-  --ea-surface: #101b2a;
-  --ea-line: #213046;
-  --ea-muted: #6e829e;
-  --ea-text: #c5d2e5;
+  --ea-bg: #f7f9fc;
+  --ea-surface: #ffffff;
+  --ea-line: #dee6ef;
+  --ea-muted: #60728b;
+  --ea-text: #2a3c54;
   min-height: 100dvh;
-  background: radial-gradient(
-    ellipse at 50% 10%,
-    #142438 0,
-    #0b1421 39%,
-    #080f19 75%
-  );
+  background: linear-gradient(180deg, #f2f6fc 0, #f8fafc 640px);
   color: var(--ea-text);
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
 }
 .ea-header {
   height: 83px;
-  border-bottom: 1px solid #1c293c;
+  border-bottom: 1px solid #dce5ef;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 30px;
   padding: 0 5%;
-  background: #0b1420b8;
+  background: #ffffffed;
 }
 .ea-brand {
   display: flex;
   align-items: center;
   gap: 11px;
-  color: #e0e8f5;
+  color: #263e5c;
   font-size: 21px;
   font-weight: 600;
   white-space: nowrap;
@@ -37,14 +32,14 @@
 .ea-brand b {
   font-size: 12px;
   font-weight: 400;
-  color: #8b9bb2;
+  color: #263e5c;
   margin-left: 7px;
 }
 .ea-account {
   display: flex;
   align-items: center;
   gap: 13px;
-  color: #bdcce1;
+  color: #263e5c;
   min-width: 170px;
   justify-content: flex-end;
 }
@@ -62,8 +57,8 @@
 }
 .ea-account-copy small {
   display: block;
-  font-size: 8px;
-  color: #617b9e;
+  font-size: 10px;
+  color: #647890;
   margin-top: 6px;
 }
 .ea-avatar {
@@ -73,11 +68,11 @@
   width: 35px;
   height: 35px;
   flex-shrink: 0;
-  border: 1px solid #355278;
-  background: #183052;
+  border: 1px solid #dce5ef;
+  background: #f0f5fb;
   border-radius: 50%;
   font-size: 12px;
-  color: #9ab8e5;
+  color: #263e5c;
   font-weight: 600;
 }
 .ea-avatar > span {
@@ -85,10 +80,10 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #58beaa;
+  background: #4e83bb;
   bottom: 1px;
   right: 0;
-  border: 2px solid #0b1420;
+  border: 2px solid #dce5ef;
 }
 .ea-main {
   width: min(1430px, 90%);
@@ -106,8 +101,8 @@
   display: flex;
   gap: 7px;
   align-items: center;
-  color: #7d94b4;
-  font-size: 10px;
+  color: #263e5c;
+  font-size: 12px;
   margin-bottom: 12px;
 }
 .ea-kicker > span {
@@ -115,24 +110,24 @@
   height: 5px;
   display: block;
   border-radius: 50%;
-  background: #69b5ba;
+  background: #4e83bb;
 }
 .ea-page-heading h1 {
   font-size: 30px;
   font-weight: 500;
   letter-spacing: -0.8px;
-  color: #dde7f7;
+  color: #263e5c;
   line-height: 1.5;
 }
 .ea-page-heading h1 + p {
   font-size: 11px;
-  color: #6b819f;
+  color: #647890;
   margin-top: 10px;
   line-height: 1.9;
 }
 .ea-head-note {
-  color: #879dbb;
-  font-size: 10px;
+  color: #263e5c;
+  font-size: 12px;
   display: flex;
   gap: 7px;
   align-items: center;
@@ -143,8 +138,8 @@
 .ea-head-note small {
   display: block;
   width: 100%;
-  font-size: 8px;
-  color: #4a6384;
+  font-size: 10px;
+  color: #647890;
   text-align: right;
   margin-top: 6px;
 }
@@ -153,12 +148,12 @@
   height: 5px;
   display: inline-block;
   border-radius: 50%;
-  background: #60b2a7;
+  background: #4e83bb;
   box-shadow: 0 0 8px #60b2a733;
 }
 .ea-map-section {
-  background: #0c1724;
-  border: 1px solid #20324a;
+  background: #f0f5fb;
+  border: 1px solid #dce5ef;
   border-radius: 11px;
   overflow: hidden;
   box-shadow: 0 15px 65px #00000014;
@@ -170,24 +165,24 @@
   justify-content: space-between;
   gap: 20px;
   padding: 25px 27px 17px;
-  background: linear-gradient(180deg, #102033, #0d1929);
+  background: linear-gradient(180deg, #f0f5fb, #f0f5fb);
 }
 .ea-map-label {
   display: block;
-  color: #6e8cac;
-  font-size: 9px;
+  color: #647890;
+  font-size: 11px;
   letter-spacing: 0.5px;
   margin-bottom: 9px;
 }
 .ea-map-caption h2 {
   font-size: 18px;
   font-weight: 500;
-  color: #c2d4ee;
+  color: #263e5c;
   letter-spacing: -0.4px;
 }
 .ea-map-caption p {
-  font-size: 9px;
-  color: #6c85a5;
+  font-size: 11px;
+  color: #647890;
   margin-top: 12px;
   display: flex;
   align-items: center;
@@ -197,13 +192,13 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #68ceb1;
+  background: #4e83bb;
   display: block;
 }
 .ea-small-divider {
   width: 1px;
   height: 8px;
-  background: #2b405b;
+  background: #f0f5fb;
   display: block;
   margin-inline: 8px;
 }
@@ -211,21 +206,21 @@
   display: flex;
   align-items: center;
   gap: 11px;
-  color: #9faec7;
+  color: #263e5c;
 }
 .ea-provider-row > span:not(:first-child) {
   width: 35px;
   height: 35px;
   display: grid;
   place-items: center;
-  background: #132339;
-  border: 1px solid #263b56;
+  background: #f0f5fb;
+  border: 1px solid #dce5ef;
   border-radius: 9px;
-  color: #bbcae0;
+  color: #263e5c;
 }
 .ea-provider-row > span:first-child {
-  font-size: 9px;
-  color: #617c9e;
+  font-size: 11px;
+  color: #647890;
   margin-right: 3px;
 }
 .ea-market-tabs {
@@ -233,48 +228,48 @@
   gap: 10px;
   flex-wrap: wrap;
   padding: 0 27px 16px;
-  background: #0d1929;
-  border-bottom: 1px solid #192c43;
+  background: #f0f5fb;
+  border-bottom: 1px solid #dce5ef;
 }
 .ea-market-tabs > button {
   display: flex;
   gap: 6px;
   align-items: center;
   padding: 7px 11px;
-  border: 1px solid #223650;
+  border: 1px solid #dce5ef;
   border-radius: 5px;
-  font-size: 9px;
-  color: #6e88aa;
-  background: #101e30;
+  font-size: 11px;
+  color: #647890;
+  background: #f0f5fb;
 }
 .ea-market-tabs > button.active {
-  border-color: #4276ad;
-  background: #193350;
-  color: #b5d5fd;
+  border-color: #dce5ef;
+  background: #f0f5fb;
+  color: #263e5c;
 }
 .ea-market-dot {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #618ab8;
+  background: #4e83bb;
 }
 .ea-market-dot.registered {
-  background: #6bc5ab;
+  background: #4e83bb;
 }
 .ea-market-tabs small {
-  font-size: 7px;
-  color: #629c94;
+  font-size: 10px;
+  color: #647890;
   padding-left: 4px;
 }
 .ea-map-body {
   position: relative;
-  background: #0a1522;
+  background: #f0f5fb;
   overflow: hidden;
 }
 .enterprise-atlas .world-panel {
   border: 0;
   border-radius: 0;
-  background: #0a1522;
+  background: #f0f5fb;
 }
 .enterprise-atlas .map-toolbar,
 .enterprise-atlas .map-footer,
@@ -284,7 +279,7 @@
 .enterprise-atlas .world-canvas {
   display: block;
   min-height: 0;
-  background: #0a1522;
+  background: #f0f5fb;
 }
 .enterprise-atlas .world-map {
   width: 100%;
@@ -296,10 +291,10 @@
   margin-bottom: -20px;
 }
 .enterprise-atlas #map-surface stop:first-child {
-  stop-color: #0d1b2b;
+  stop-color: #f6f9fd;
 }
 .enterprise-atlas #map-surface stop:last-child {
-  stop-color: #091422;
+  stop-color: #f6f9fd;
 }
 .enterprise-atlas #map-dots circle {
   fill: #29405d;
@@ -331,7 +326,7 @@
   fill: #7391b6;
   stroke: #102033;
   stroke-width: 3px;
-  font-size: 9px;
+  font-size: 11px;
 }
 .enterprise-atlas .map-city circle {
   fill: #64a6c4;
@@ -340,30 +335,30 @@
 .enterprise-atlas .continent-label {
   fill: #3b5575;
   letter-spacing: 3px;
-  font-size: 10px;
+  font-size: 12px;
 }
 .enterprise-atlas .map-attribution {
-  font-size: 7px;
-  color: #3a5373;
+  font-size: 10px;
+  color: #647890;
   bottom: 26px;
   left: 27px;
 }
 .enterprise-atlas .map-zoom {
   right: 24px;
   bottom: 30px;
-  background: #14263d;
-  border-color: #2a4362;
+  background: #f0f5fb;
+  border-color: #dce5ef;
   box-shadow: none;
 }
 .enterprise-atlas .map-zoom button {
-  color: #7096c3;
-  border-color: #263d5a;
+  color: #263e5c;
+  border-color: #dce5ef;
 }
 .enterprise-atlas .map-hover-label {
-  background: #19324e;
-  color: #bdd8f5;
-  border: 1px solid #3c618c;
-  font-size: 10px;
+  background: #f0f5fb;
+  color: #263e5c;
+  border: 1px solid #dce5ef;
+  font-size: 12px;
 }
 .enterprise-atlas .map-event-point circle,
 .enterprise-atlas .map-event-marker circle {
@@ -384,8 +379,8 @@
   transform: translate(9px, -15px);
   pointer-events: none;
   z-index: 2;
-  background: #0b302eeb;
-  border: 1px solid #28635b;
+  background: #ffffffed;
+  border: 1px solid #dce5ef;
   border-radius: 5px;
   padding: 6px 9px;
   display: grid;
@@ -397,19 +392,19 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #76e1bc;
+  background: #4e83bb;
   margin-top: 3px;
   box-shadow: 0 0 10px #76e1bc55;
 }
 .ea-registration-pin > strong {
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 500;
-  color: #b0ddcf;
+  color: #263e5c;
 }
 .ea-registration-pin > small {
   grid-column: 2;
-  color: #5c9a8b;
-  font-size: 6px;
+  color: #647890;
+  font-size: 10px;
 }
 .ea-map-legend {
   position: absolute;
@@ -417,8 +412,8 @@
   bottom: 20px;
   display: flex;
   gap: 18px;
-  color: #5c7698;
-  font-size: 8px;
+  color: #647890;
+  font-size: 10px;
 }
 .ea-map-legend > span {
   display: flex;
@@ -430,24 +425,24 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #355b80;
+  background: #f0f5fb;
 }
 .ea-map-legend > span:nth-child(2) i {
-  background: #65afcf;
+  background: #4e83bb;
 }
 .ea-map-legend > span:nth-child(3) i {
-  background: #75cfad;
+  background: #4e83bb;
 }
 .ea-map-bottom {
   padding: 13px 26px;
-  border-top: 1px solid #1b2e46;
+  border-top: 1px solid #dce5ef;
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #4c688d;
-  font-size: 8px;
+  color: #647890;
+  font-size: 10px;
   line-height: 1.9;
-  background: #0d1928;
+  background: #f0f5fb;
 }
 .ea-map-bottom > span {
   flex: 1;
@@ -456,27 +451,27 @@
   display: flex;
   gap: 5px;
   align-items: center;
-  color: #6b8fbd;
-  font-size: 8px;
+  color: #263e5c;
+  font-size: 10px;
   white-space: nowrap;
 }
 .ea-selected-event {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #102943;
-  border: 1px solid #294f78;
+  background: #f0f5fb;
+  border: 1px solid #dce5ef;
   padding: 13px 18px;
   border-radius: 6px;
   margin-top: 15px;
-  font-size: 10px;
+  font-size: 12px;
 }
 .ea-selected-event > span:first-child {
-  font-size: 8px;
-  color: #708fb6;
+  font-size: 10px;
+  color: #263e5c;
 }
 .ea-selected-event > strong {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   flex: 1;
   line-height: 1.8;
@@ -485,11 +480,11 @@
   display: flex;
   gap: 5px;
   align-items: center;
-  font-size: 8px;
-  color: #8fb6e8;
+  font-size: 10px;
+  color: #263e5c;
 }
 .ea-selected-event > button {
-  color: #7091b8;
+  color: #263e5c;
 }
 .ea-insights-grid {
   display: grid;
@@ -503,33 +498,33 @@
   justify-content: space-between;
   gap: 15px;
   padding-bottom: 22px;
-  border-bottom: 1px solid #1b2b40;
+  border-bottom: 1px solid #dce5ef;
 }
 .ea-section-heading h2 {
   font-size: 16px;
   font-weight: 500;
-  color: #bdcfe7;
+  color: #263e5c;
   display: flex;
   gap: 8px;
   align-items: center;
 }
 .ea-section-heading h2 > svg {
-  color: #638ab9;
+  color: #647890;
 }
 .ea-section-heading p {
-  font-size: 9px;
-  color: #506b8d;
+  font-size: 11px;
+  color: #647890;
   margin-top: 9px;
   line-height: 1.8;
 }
 .ea-section-heading > span {
-  color: #587698;
-  font-size: 8px;
+  color: #647890;
+  font-size: 10px;
 }
 .ea-section-heading > button {
-  color: #7299c9;
+  color: #263e5c;
   padding: 6px;
-  border: 1px solid #233c5b;
+  border: 1px solid #dce5ef;
   border-radius: 5px;
 }
 .ea-timeline-list {
@@ -543,8 +538,8 @@
   text-align: left;
   width: 100%;
   padding: 24px 0 24px 17px;
-  border-bottom: 1px solid #142438;
-  border-left: 1px solid #223a55;
+  border-bottom: 1px solid #dce5ef;
+  border-left: 1px solid #dce5ef;
   margin-left: 3px;
 }
 .ea-timeline-dot {
@@ -553,18 +548,18 @@
   top: 30px;
   width: 5px;
   height: 5px;
-  background: #426b96;
-  border: 1px solid #6789af;
+  background: #4e83bb;
+  border: 1px solid #dce5ef;
   border-radius: 50%;
-  box-shadow: 0 0 0 5px #0b1521;
+  box-shadow: 0 0 0 5px #f8fafc;
 }
 .ea-timeline-event.selected .ea-timeline-dot {
-  background: #7fc9dc;
-  box-shadow: 0 0 0 5px #13263c;
+  background: #4e83bb;
+  box-shadow: 0 0 0 5px #eaf2fc;
 }
 .ea-timeline-event time {
-  font-size: 8px;
-  color: #587598;
+  font-size: 10px;
+  color: #647890;
   width: 67px;
   flex-shrink: 0;
   padding-top: 1px;
@@ -578,23 +573,23 @@
   display: flex;
   gap: 10px;
   align-items: center;
-  font-size: 7px;
-  color: #567497;
+  font-size: 10px;
+  color: #647890;
   margin-bottom: 8px;
 }
 .ea-timeline-event h3 {
   font-size: 12px;
   line-height: 1.8;
   font-weight: 500;
-  color: #9cb6d8;
+  color: #263e5c;
 }
 .ea-timeline-event:hover h3 {
-  color: #c0dbff;
+  color: #263e5c;
 }
 .ea-timeline-event p {
-  font-size: 9px;
+  font-size: 11px;
   line-height: 2;
-  color: #4f6b90;
+  color: #647890;
   margin-top: 9px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -605,17 +600,17 @@
   display: flex;
   gap: 5px;
   align-items: center;
-  font-size: 7px;
-  color: #375779;
+  font-size: 10px;
+  color: #647890;
   margin-top: 11px;
 }
 .ea-verified {
-  color: #559e91 !important;
-  font-size: 7px;
+  color: #647890 !important;
+  font-size: 10px;
 }
 .ea-pending {
-  color: #c2a46a !important;
-  font-size: 7px;
+  color: #263e5c !important;
+  font-size: 10px;
 }
 .ea-risk-list {
   display: flex;
@@ -625,9 +620,9 @@
 }
 .ea-risk-card {
   padding: 20px 22px;
-  border: 1px solid #253347;
+  border: 1px solid #dce5ef;
   border-radius: 8px;
-  background: linear-gradient(130deg, #132035, #101c2c);
+  background: linear-gradient(130deg, #f0f5fb, #f0f5fb);
 }
 .ea-risk-top {
   display: flex;
@@ -636,29 +631,29 @@
   margin-bottom: 11px;
 }
 .ea-risk-top > span {
-  font-size: 8px;
+  font-size: 10px;
   padding: 3px 6px;
   border-radius: 3px;
-  background: #303039;
-  color: #c0a47b;
+  background: #f0f5fb;
+  color: #263e5c;
 }
 .ea-risk-top > span.medium {
-  background: #173738;
-  color: #78a49c;
+  background: #f0f5fb;
+  color: #263e5c;
 }
 .ea-risk-top small {
   font-size: 12px;
-  color: #344d6e;
+  color: #647890;
 }
 .ea-risk-card h3 {
   font-size: 13px;
   line-height: 1.9;
   font-weight: 500;
-  color: #b3c5df;
+  color: #263e5c;
 }
 .ea-risk-card > p {
-  font-size: 10px;
-  color: #6580a3;
+  font-size: 12px;
+  color: #647890;
   line-height: 2;
   margin-top: 9px;
 }
@@ -668,16 +663,16 @@
   align-items: flex-start;
   padding: 11px 12px;
   border-radius: 5px;
-  background: #0d192b;
-  border: 1px solid #1c304a;
-  color: #7692b9;
-  font-size: 9px;
+  background: #f0f5fb;
+  border: 1px solid #dce5ef;
+  color: #263e5c;
+  font-size: 11px;
   line-height: 2;
   margin-top: 15px;
 }
 .ea-risk-action > svg {
   margin-top: 3px;
-  color: #6b9a9f;
+  color: #647890;
 }
 .ea-risk-sources {
   display: flex;
@@ -689,16 +684,16 @@
   display: flex;
   gap: 4px;
   align-items: center;
-  color: #476b97;
-  font-size: 7px;
+  color: #647890;
+  font-size: 10px;
 }
 .ea-boundary {
   display: flex;
   gap: 7px;
   align-items: flex-start;
-  font-size: 8px;
+  font-size: 10px;
   line-height: 2;
-  color: #3c597d;
+  color: #647890;
   margin-top: 18px;
 }
 .ea-boundary > svg {
@@ -707,8 +702,8 @@
 .ea-empty {
   padding: 50px 20px;
   text-align: center;
-  color: #44658c;
-  font-size: 10px;
+  color: #647890;
+  font-size: 12px;
   line-height: 2;
 }
 .ea-empty > p {
@@ -716,19 +711,19 @@
 }
 .ea-footer {
   margin-top: 40px;
-  border-top: 1px solid #1b2b41;
+  border-top: 1px solid #dce5ef;
   padding: 24px 0 30px;
   display: flex;
   justify-content: space-between;
   gap: 15px;
-  color: #3d5776;
-  font-size: 8px;
+  color: #647890;
+  font-size: 10px;
 }
 .ea-footer > span:first-child {
-  color: #6d87a8;
+  color: #647890;
 }
 .ea-footer > span > span {
-  color: #3d5776;
+  color: #647890;
   margin-left: 15px;
 }
 .ea-toast {
@@ -740,9 +735,9 @@
   display: flex;
   gap: 9px;
   align-items: center;
-  border: 1px solid #375370;
-  background: #152a42;
-  color: #a2c1e3;
+  border: 1px solid #dce5ef;
+  background: #f0f5fb;
+  color: #263e5c;
   border-radius: 7px;
   padding: 13px 20px;
   font-size: 11px;
@@ -752,7 +747,7 @@
   position: fixed;
   inset: 0;
   z-index: 90;
-  background: #020814aa;
+  background: #21354c40;
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: flex-end;
@@ -760,10 +755,10 @@
 .ea-settings {
   width: min(570px, 100%);
   height: 100dvh;
-  background: #101d2d;
-  border-left: 1px solid #2a3f5b;
+  background: #f0f5fb;
+  border-left: 1px solid #dce5ef;
   overflow: auto;
-  color: #9db4d1;
+  color: #263e5c;
   box-shadow: -15px 0 65px #0004;
 }
 .ea-settings-heading {
@@ -771,28 +766,28 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #26374f;
+  border-bottom: 1px solid #dce5ef;
 }
 .ea-settings-heading p {
-  font-size: 9px;
-  color: #55789f;
+  font-size: 11px;
+  color: #647890;
   margin-bottom: 9px;
 }
 .ea-settings-heading h2 {
   font-size: 22px;
   font-weight: 500;
-  color: #c4d5eb;
+  color: #263e5c;
 }
 .ea-settings-heading > button {
-  color: #7294bd;
+  color: #263e5c;
 }
 .ea-settings-account {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 21px 30px;
-  background: #112237;
-  border-bottom: 1px solid #233750;
+  background: #f0f5fb;
+  border-bottom: 1px solid #dce5ef;
 }
 .ea-settings-account > div {
   flex: 1;
@@ -801,20 +796,20 @@
 .ea-settings-account strong {
   font-size: 11px;
   font-weight: 500;
-  color: #9eb9db;
+  color: #263e5c;
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
 }
 .ea-settings-account p {
-  font-size: 8px;
-  color: #597ba2;
+  font-size: 10px;
+  color: #647890;
   margin-top: 7px;
 }
 .ea-settings-account > button {
-  font-size: 9px;
-  color: #749bd0;
-  border: 1px solid #294a70;
+  font-size: 11px;
+  color: #263e5c;
+  border: 1px solid #dce5ef;
   border-radius: 4px;
   padding: 7px 9px;
   white-space: nowrap;
@@ -825,13 +820,13 @@
 .ea-settings-form section {
   padding-bottom: 28px;
   margin-bottom: 27px;
-  border-bottom: 1px solid #25354a;
+  border-bottom: 1px solid #dce5ef;
 }
 .ea-settings-form h3,
 .ea-login-form h3 {
   font-size: 13px;
   font-weight: 500;
-  color: #9eb9dd;
+  color: #263e5c;
   margin-bottom: 20px;
 }
 .ea-settings-form label,
@@ -839,8 +834,8 @@
   display: flex;
   flex-direction: column;
   gap: 9px;
-  font-size: 9px;
-  color: #6587b0;
+  font-size: 11px;
+  color: #647890;
   margin-bottom: 19px;
 }
 .ea-settings-form input,
@@ -848,12 +843,12 @@
 .ea-settings-form textarea,
 .ea-login-form input {
   width: 100%;
-  border: 1px solid #2b415d;
+  border: 1px solid #dce5ef;
   border-radius: 5px;
   padding: 10px 12px;
-  font-size: 10px;
-  color: #97b1d4;
-  background: #0e1a29;
+  font-size: 12px;
+  color: #263e5c;
+  background: #f0f5fb;
   outline: none;
   line-height: 1.8;
   min-width: 0;
@@ -861,7 +856,7 @@
 .ea-settings-form input:focus,
 .ea-settings-form textarea:focus,
 .ea-settings-form select:focus {
-  border-color: #517fb9;
+  border-color: #dce5ef;
 }
 .ea-settings-form textarea {
   resize: vertical;
@@ -877,8 +872,8 @@
   margin: 23px 0;
 }
 .ea-settings-form legend {
-  font-size: 9px;
-  color: #6587b0;
+  font-size: 11px;
+  color: #647890;
   margin-bottom: 13px;
 }
 .ea-choice-list {
@@ -890,17 +885,17 @@
   display: flex;
   gap: 5px;
   align-items: center;
-  border: 1px solid #263c58;
+  border: 1px solid #dce5ef;
   border-radius: 4px;
   padding: 7px 10px;
-  color: #526f94;
-  font-size: 9px;
-  background: #102033;
+  color: #647890;
+  font-size: 11px;
+  background: #f0f5fb;
 }
 .ea-choice-list > button.selected {
-  background: #1a3554;
-  border-color: #3b628e;
-  color: #a3c0e7;
+  background: #f0f5fb;
+  border-color: #dce5ef;
+  color: #263e5c;
 }
 .ea-settings-section-title {
   display: flex;
@@ -911,8 +906,8 @@
   display: flex;
   gap: 5px;
   align-items: center;
-  font-size: 9px;
-  color: #6c93c4;
+  font-size: 11px;
+  color: #263e5c;
   margin-bottom: 20px;
 }
 .ea-business-tabs {
@@ -922,20 +917,20 @@
   margin-bottom: 24px;
 }
 .ea-business-tabs > button {
-  font-size: 9px;
-  color: #637fa1;
-  border: 1px solid #253b57;
+  font-size: 11px;
+  color: #647890;
+  border: 1px solid #dce5ef;
   padding: 7px 10px;
   border-radius: 4px;
 }
 .ea-business-tabs > button.active {
-  background: #213a58;
-  border-color: #466a96;
-  color: #a8c2e4;
+  background: #f0f5fb;
+  border-color: #dce5ef;
+  color: #263e5c;
 }
 .ea-remove-business {
-  font-size: 8px;
-  color: #a47e7f;
+  font-size: 10px;
+  color: #647890;
   padding: 6px 0;
 }
 .ea-settings-save {
@@ -948,37 +943,37 @@
   display: flex;
   gap: 5px;
   align-items: center;
-  font-size: 8px;
-  color: #4e719a;
+  font-size: 10px;
+  color: #647890;
 }
 .ea-save {
-  font-size: 10px;
+  font-size: 12px;
   padding: 11px 17px;
-  color: #d4e6ff;
-  background: #295487;
-  border: 1px solid #3d6da4;
+  color: #263e5c;
+  background: #f0f5fb;
+  border: 1px solid #dce5ef;
   border-radius: 5px;
 }
 .ea-save:disabled {
   opacity: 0.5;
 }
 .ea-empty-business {
-  font-size: 10px;
-  color: #5a7aa0;
+  font-size: 12px;
+  color: #647890;
   line-height: 2;
 }
 .ea-login-form {
   padding: 30px;
 }
 .ea-login-form > p {
-  font-size: 10px;
-  color: #bb9078;
+  font-size: 12px;
+  color: #263e5c;
   line-height: 1.9;
   margin-bottom: 15px;
 }
 .ea-login-form > button:last-child {
-  font-size: 9px;
-  color: #688bb8;
+  font-size: 11px;
+  color: #647890;
   margin-left: 20px;
 }
 @media (min-width: 1500px) {
@@ -1008,7 +1003,7 @@
     font-size: 11px;
   }
   .ea-risk-action {
-    font-size: 10px;
+    font-size: 12px;
   }
   .ea-map-body .ea-registration-pin {
     top: 49%;
@@ -1023,14 +1018,14 @@
     font-size: 18px;
   }
   .ea-brand b {
-    font-size: 10px;
+    font-size: 12px;
     margin-left: 3px;
   }
   .ea-account {
     min-width: 130px;
   }
   .ea-account-copy strong {
-    font-size: 10px;
+    font-size: 12px;
     max-width: 115px;
   }
   .ea-main {
@@ -1044,16 +1039,16 @@
   }
   .ea-timeline-event time {
     width: 60px;
-    font-size: 7px;
+    font-size: 10px;
   }
   .ea-risk-card {
     padding: 18px;
   }
   .ea-risk-card > p {
-    font-size: 9px;
+    font-size: 11px;
   }
   .ea-risk-action {
-    font-size: 8px;
+    font-size: 10px;
   }
   .ea-map-caption {
     padding-inline: 23px;
@@ -1068,32 +1063,30 @@
 }
 @media (max-width: 800px) {
   .ea-header {
-    height: 120px;
+    height: 80px;
     position: relative;
-    padding-bottom: 49px;
+    padding-bottom: 0;
     gap: 15px;
   }
   .ea-header .wi-view-switch {
-    position: absolute;
-    left: 50%;
-    bottom: 13px;
-    transform: translateX(-50%);
-    max-width: 90%;
+    position: static;
+    transform: none;
+    max-width: none;
   }
   .ea-brand {
     font-size: 17px;
   }
   .ea-brand b {
-    font-size: 10px;
+    font-size: 12px;
   }
   .ea-account {
     min-width: 130px;
   }
   .ea-account-copy strong {
-    font-size: 10px;
+    font-size: 12px;
   }
   .ea-account-copy small {
-    font-size: 7px;
+    font-size: 10px;
   }
   .ea-page-heading {
     gap: 16px;
@@ -1104,16 +1097,16 @@
     font-size: 25px;
   }
   .ea-page-heading h1 + p {
-    font-size: 9px;
+    font-size: 11px;
     max-width: 310px;
   }
   .ea-head-note {
-    font-size: 8px;
+    font-size: 10px;
     max-width: 170px;
     margin-top: 9px;
   }
   .ea-head-note small {
-    font-size: 7px;
+    font-size: 10px;
     line-height: 1.9;
   }
   .ea-main {
@@ -1138,11 +1131,11 @@
     height: 19px;
   }
   .ea-provider-row > span:first-child {
-    font-size: 8px;
+    font-size: 10px;
     display: none;
   }
   .ea-map-caption p {
-    font-size: 8px;
+    font-size: 10px;
     gap: 4px;
   }
   .ea-small-divider {
@@ -1153,29 +1146,29 @@
     gap: 7px;
   }
   .ea-market-tabs > button {
-    font-size: 8px;
+    font-size: 10px;
     padding: 6px 8px;
   }
   .ea-market-tabs small {
-    font-size: 6px;
+    font-size: 10px;
     padding-left: 0;
   }
   .ea-map-bottom {
     padding: 12px 19px;
-    font-size: 7px;
+    font-size: 10px;
     align-items: flex-start;
   }
   .ea-map-bottom > svg {
     margin-top: 3px;
   }
   .ea-map-bottom > button {
-    font-size: 7px;
+    font-size: 10px;
     margin-top: 2px;
   }
   .ea-map-legend {
     left: 20px;
     bottom: 12px;
-    font-size: 6px;
+    font-size: 10px;
     gap: 11px;
   }
   .enterprise-atlas .map-attribution {
@@ -1188,7 +1181,7 @@
     padding: 5px 7px;
   }
   .ea-registration-pin strong {
-    font-size: 6px;
+    font-size: 10px;
   }
   .ea-registration-pin small {
     font-size: 5px;
@@ -1216,23 +1209,23 @@
     padding: 21px;
   }
   .ea-risk-card > p {
-    font-size: 10px;
+    font-size: 12px;
   }
   .ea-risk-action {
-    font-size: 9px;
+    font-size: 11px;
   }
   .ea-timeline-event p {
-    font-size: 10px;
+    font-size: 12px;
   }
   .ea-timeline-event h3 {
     font-size: 12px;
   }
   .ea-timeline-event time {
     width: 65px;
-    font-size: 8px;
+    font-size: 10px;
   }
   .ea-timeline-meta {
-    font-size: 8px;
+    font-size: 10px;
   }
   .ea-timeline-event {
     gap: 15px;
@@ -1240,7 +1233,7 @@
   .ea-footer {
     flex-wrap: wrap;
     gap: 12px;
-    font-size: 7px;
+    font-size: 10px;
   }
   .ea-selected-event {
     flex-wrap: wrap;
@@ -1250,10 +1243,10 @@
     min-width: 210px;
   }
   .ea-selected-event > a {
-    font-size: 7px;
+    font-size: 10px;
   }
   .ea-selected-event > span:first-child {
-    font-size: 7px;
+    font-size: 10px;
   }
 }
 @media (max-width: 500px) {
@@ -1270,23 +1263,23 @@
     height: 27px;
   }
   .ea-brand b {
-    font-size: 9px;
+    font-size: 11px;
   }
   .ea-account {
     gap: 9px;
     min-width: 100px;
   }
   .ea-account-copy strong {
-    font-size: 9px;
+    font-size: 11px;
     max-width: 105px;
   }
   .ea-avatar {
     width: 30px;
     height: 30px;
-    font-size: 10px;
+    font-size: 12px;
   }
   .ea-account-copy small {
-    font-size: 6px;
+    font-size: 10px;
     margin-top: 5px;
   }
   .ea-main {
@@ -1300,11 +1293,11 @@
     font-size: 24px;
   }
   .ea-kicker {
-    font-size: 8px;
+    font-size: 10px;
     margin-bottom: 10px;
   }
   .ea-page-heading h1 + p {
-    font-size: 8px;
+    font-size: 10px;
     max-width: none;
   }
   .ea-head-note {
@@ -1315,14 +1308,14 @@
     padding: 19px 15px 14px;
   }
   .ea-map-label {
-    font-size: 7px;
+    font-size: 10px;
     margin-bottom: 7px;
   }
   .ea-map-caption h2 {
     font-size: 14px;
   }
   .ea-map-caption p {
-    font-size: 6px;
+    font-size: 10px;
     gap: 3px;
     margin-top: 10px;
   }
@@ -1349,7 +1342,7 @@
     gap: 6px;
   }
   .ea-market-tabs > button {
-    font-size: 7px;
+    font-size: 10px;
     padding: 6px 7px;
   }
   .ea-market-dot {
@@ -1377,13 +1370,13 @@
   .ea-map-bottom {
     padding: 11px 14px;
     gap: 5px;
-    font-size: 6px;
+    font-size: 10px;
   }
   .ea-map-bottom > button {
     display: none;
   }
   .ea-map-legend {
-    font-size: 5px;
+    font-size: 8px;
     gap: 9px;
     left: 14px;
     bottom: 10px;
@@ -1422,19 +1415,19 @@
     margin-top: 2px;
   }
   .ea-registration-pin strong {
-    font-size: 5px;
+    font-size: 8px;
   }
   .ea-registration-pin small {
-    font-size: 4px;
+    font-size: 7px;
   }
   .ea-section-heading h2 {
     font-size: 15px;
   }
   .ea-section-heading p {
-    font-size: 8px;
+    font-size: 10px;
   }
   .ea-section-heading > span {
-    font-size: 7px;
+    font-size: 10px;
   }
   .ea-section-heading {
     padding-bottom: 18px;
@@ -1444,21 +1437,21 @@
     gap: 11px;
   }
   .ea-timeline-event time {
-    font-size: 7px;
+    font-size: 10px;
     width: 58px;
   }
   .ea-timeline-event h3 {
     font-size: 11px;
   }
   .ea-timeline-event p {
-    font-size: 9px;
+    font-size: 11px;
   }
   .ea-timeline-meta {
-    font-size: 6px;
+    font-size: 10px;
     gap: 8px;
   }
   .ea-event-source {
-    font-size: 6px;
+    font-size: 10px;
   }
   .ea-timeline-dot {
     top: 26px;
@@ -1470,22 +1463,22 @@
     font-size: 12px;
   }
   .ea-risk-card > p {
-    font-size: 9px;
+    font-size: 11px;
   }
   .ea-risk-action {
-    font-size: 8px;
+    font-size: 10px;
     padding: 10px;
   }
   .ea-risk-sources a {
-    font-size: 6px;
+    font-size: 10px;
   }
   .ea-boundary {
-    font-size: 7px;
+    font-size: 10px;
   }
   .ea-footer {
     margin-top: 30px;
     padding-top: 20px;
-    font-size: 6px;
+    font-size: 10px;
   }
   .ea-footer > span > span {
     margin-left: 10px;
@@ -1500,13 +1493,13 @@
     padding: 20px 24px;
   }
   .ea-settings-account strong {
-    font-size: 10px;
+    font-size: 12px;
   }
   .ea-settings-account p {
-    font-size: 7px;
+    font-size: 10px;
   }
   .ea-settings-account > button {
-    font-size: 8px;
+    font-size: 10px;
   }
   .ea-settings-form {
     padding: 25px 24px;
@@ -1514,33 +1507,33 @@
   .ea-settings-form input,
   .ea-settings-form select,
   .ea-settings-form textarea {
-    font-size: 10px;
+    font-size: 12px;
   }
   .ea-choice-list > button {
-    font-size: 8px;
+    font-size: 10px;
     padding: 7px 9px;
   }
   .ea-form-grid {
     gap: 12px;
   }
   .ea-settings-form label {
-    font-size: 8px;
+    font-size: 10px;
   }
   .ea-settings-form h3 {
     font-size: 12px;
   }
   .ea-business-tabs > button {
-    font-size: 8px;
+    font-size: 10px;
   }
   .ea-settings-save > span {
-    font-size: 7px;
+    font-size: 10px;
   }
   .ea-save {
-    font-size: 9px;
+    font-size: 11px;
     padding: 10px 13px;
   }
   .ea-toast {
-    font-size: 9px;
+    font-size: 11px;
     padding: 12px 16px;
     min-width: 270px;
     max-width: 90%;
@@ -1553,11 +1546,265 @@
 
 .ea-settings-rule-note {
   padding: 12px 14px;
-  background: #12283b;
-  border: 1px solid #243e5b;
+  background: #f0f5fb;
+  border: 1px solid #dce5ef;
   border-radius: 5px;
-  color: #6e8eaf;
-  font-size: 9px;
+  color: #647890;
+  font-size: 11px;
   line-height: 2;
   margin-bottom: 24px;
+}
+
+/* Enterprise shares the public atlas palette; blue signals and amber risks guide attention. */
+.ea-header {
+  background: #ffffffed;
+  border-color: #e0e7f0;
+}
+.ea-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  margin-left: auto;
+}
+.ea-account {
+  min-width: 0;
+}
+.ea-avatar {
+  background: #e9f1fc;
+  color: #365f96;
+  border-color: #cbdcf1;
+}
+.ea-avatar > span {
+  background: #42a68a;
+  border-color: #fff;
+}
+.ea-map-section {
+  background: #fff;
+  border-color: #dce5ef;
+  box-shadow: 0 14px 48px #253c5910;
+}
+.ea-map-caption {
+  background: #fff;
+}
+.ea-market-tabs {
+  background: #fff;
+}
+.ea-market-tabs > button {
+  background: #fff;
+}
+.ea-market-tabs > button.active {
+  background: #eaf2fe;
+  color: #35649e;
+  border-color: #acc6e7;
+}
+.ea-map-body,
+.enterprise-atlas .world-panel,
+.enterprise-atlas .world-canvas {
+  background: #f5f8fc;
+}
+.enterprise-atlas #map-surface stop:first-child {
+  stop-color: #f4f8fc;
+}
+.enterprise-atlas #map-surface stop:last-child {
+  stop-color: #fafcfe;
+}
+.enterprise-atlas #map-dots circle {
+  fill: #b6c9de;
+  opacity: 0.35;
+}
+.enterprise-atlas .country-shape {
+  fill: #e4ebf3;
+  stroke: #f8fbff;
+}
+.enterprise-atlas .country-shape.gpai {
+  fill: #b9d4f0;
+}
+.enterprise-atlas .country-shape.waico {
+  fill: #b8d9d7;
+}
+.enterprise-atlas .country-shape.joint {
+  fill: #c5cbe8;
+}
+.enterprise-atlas .country-shape.selected {
+  fill: #8db8e3;
+  stroke: #487da9;
+}
+.enterprise-atlas .country-shape:hover {
+  fill: #9bbfe3;
+}
+.enterprise-atlas .map-city text {
+  fill: #4e7395;
+  stroke: #f8fbff;
+}
+.enterprise-atlas .map-city circle {
+  fill: #3c8b9f;
+  stroke: #fff;
+}
+.enterprise-atlas .continent-label {
+  fill: #99adc4;
+}
+.enterprise-atlas .public-map-event {
+  cursor: pointer;
+  outline: none;
+}
+.enterprise-atlas .public-map-event .event-hit-area {
+  fill: transparent;
+  stroke: none;
+  pointer-events: all;
+}
+.enterprise-atlas .public-map-event .event-halo {
+  fill: #2d79d41a;
+  stroke: #2d79d44a;
+  stroke-width: 1;
+}
+.enterprise-atlas .public-map-event .event-core {
+  fill: #327bce;
+  stroke: #fff;
+  stroke-width: 2;
+}
+.enterprise-atlas .public-map-event.is-waico .event-core {
+  fill: #ba8739;
+}
+.enterprise-atlas .public-map-event.is-waico .event-halo {
+  fill: #ba87391a;
+  stroke: #ba87394a;
+}
+.enterprise-atlas .public-map-event.is-selected .event-halo {
+  fill: #2d79d42b;
+  stroke-width: 2;
+}
+.enterprise-atlas .public-map-event text {
+  fill: #496a8e;
+  font-size: 10px;
+  font-weight: 500;
+  paint-order: stroke;
+  stroke: #f8fbff;
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+.enterprise-atlas .public-map-event:is(:hover, :focus-visible) .event-core {
+  stroke: #28557e;
+  stroke-width: 2.5;
+}
+.ea-registration-pin {
+  background: #f0faf5ed;
+  border-color: #aed4c5;
+  box-shadow: 0 2px 15px #274c3b10;
+}
+.ea-registration-pin > span {
+  background: #479978;
+}
+.ea-registration-pin > strong {
+  color: #32785f;
+}
+.ea-registration-pin > small {
+  color: #578775;
+}
+.ea-map-legend i {
+  background: #a3c5e6;
+}
+.ea-map-legend > span:nth-child(2) i {
+  background: #327bce;
+}
+.ea-map-legend > span:nth-child(3) i {
+  background: #479978;
+}
+.ea-map-bottom {
+  background: #fff;
+}
+.ea-timeline-dot {
+  background: #78a1ce;
+  border-color: #fff;
+}
+.ea-timeline-event.selected .ea-timeline-dot {
+  background: #327bce;
+}
+.ea-timeline-event:hover h3 {
+  color: #2b6cba;
+}
+.ea-risk-card {
+  background: #fff;
+  border-color: #dce5ef;
+}
+.ea-risk-top > span {
+  background: #fff2de;
+  color: #9b6a24;
+}
+.ea-risk-top > span.medium {
+  background: #edf5ff;
+  color: #37699f;
+}
+.ea-risk-top small {
+  color: #becdde;
+}
+.ea-risk-action {
+  background: #f2f6fc;
+  border-color: #e0e9f5;
+  color: #476a93;
+}
+.ea-verified {
+  color: #37816f !important;
+}
+.ea-pending {
+  color: #9c712e !important;
+}
+.ea-settings {
+  background: #fff;
+  color: #3b5069;
+  box-shadow: -15px 0 65px #233e5d1c;
+}
+.ea-settings-account {
+  background: #f4f8fd;
+}
+.ea-settings-form input,
+.ea-settings-form select,
+.ea-settings-form textarea,
+.ea-login-form input {
+  background: #fff;
+  color: #334c69;
+}
+.ea-choice-list > button,
+.ea-business-tabs > button {
+  background: #fff;
+}
+.ea-choice-list > button.selected,
+.ea-business-tabs > button.active {
+  background: #eaf2fd;
+  color: #315f99;
+  border-color: #9ebbe1;
+}
+.ea-save {
+  background: #376faf;
+  color: #fff;
+  border-color: #376faf;
+}
+.ea-toast {
+  background: #fff;
+  color: #3b608d;
+  box-shadow: 0 5px 30px #203b5920;
+}
+.ea-account:focus-visible,
+.ea-settings button:focus-visible,
+.ea-market-tabs button:focus-visible {
+  outline: 2px solid #5784bc;
+  outline-offset: 4px;
+}
+@media (max-width: 800px) {
+  .ea-header-actions {
+    gap: 13px;
+  }
+  .ea-account {
+    min-width: 0;
+  }
+  .ea-account-copy {
+    display: none;
+  }
+  .ea-header {
+    height: 80px;
+    padding-bottom: 0;
+  }
+  .ea-map-legend {
+    flex-wrap: wrap;
+    gap: 8px 14px;
+  }
 }

@@ -1811,3 +1811,42 @@
     max-width: 100%;
   }
 }
+
+/* Single portal action stays at the top-right on every viewport. */
+.wi-public .wi-public-header-inner .wi-perspective-toggle {
+  order: 2;
+  margin: 0 0 0 18px;
+  width: 48px;
+  height: 48px;
+  max-width: 48px;
+  flex: 0 0 48px;
+}
+.wi-public .wi-public-header-status {
+  order: 1;
+  margin-left: auto;
+}
+@media (max-width: 860px) {
+  .wi-public .wi-public-header-inner .wi-perspective-toggle {
+    margin-left: auto;
+  }
+}
+@media (max-width: 580px) {
+  .wi-public .wi-public-header {
+    height: 74px;
+  }
+  .wi-public .wi-public-header-inner {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    grid-template-columns: none;
+    grid-template-rows: none;
+    gap: 15px;
+    padding: 0 19px;
+  }
+  .wi-public .wi-public-header-inner .wi-perspective-toggle {
+    width: 44px;
+    height: 44px;
+    max-width: 44px;
+    flex-basis: 44px;
+  }
+}

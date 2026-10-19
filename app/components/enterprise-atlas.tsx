@@ -247,7 +247,22 @@ export function EnterpriseAtlas() {
   ];
   const risks = priorityRiskIds
     .flatMap((id) => businessRisks.filter((risk) => risk.id === id))
-    .filter((risk) => risk.markets.some((market) => markets.includes(market) || market === "全球") && risk.providers.some((provider) => provider === "其他模型" || providers.some((name) => name.toLowerCase().includes(provider.toLowerCase()) || (provider === "OpenAI" && name === "GPT") || (provider === "Anthropic" && name === "Claude"))))
+    .filter(
+      (risk) =>
+        risk.markets.some(
+          (market) => markets.includes(market) || market === "全球",
+        ) &&
+        risk.providers.some(
+          (provider) =>
+            provider === "其他模型" ||
+            providers.some(
+              (name) =>
+                name.toLowerCase().includes(provider.toLowerCase()) ||
+                (provider === "OpenAI" && name === "GPT") ||
+                (provider === "Anthropic" && name === "Claude"),
+            ),
+        ),
+    )
     .slice(0, 3);
   const draftBusiness =
     draft.businesses.find((b) => b.id === activeBusiness) ||
@@ -390,16 +405,23 @@ export function EnterpriseAtlas() {
             观风 <b>windsight</b>
           </span>
         </Link>
-        <ViewSwitch active="enterprise" />
-        <button className="ea-account" onClick={openSettings} aria-label="企业设置" title="企业设置">
-          <span className="ea-account-copy">
-            <strong>{enterprise.name.replace("（虚拟企业）", "")}</strong>
-            <small>{user ? "企业账号" : "演示企业 · 免注册"}</small>
-          </span>
-          <span className="ea-avatar">
-            M<span />
-          </span>
-        </button>
+        <div className="ea-header-actions">
+          <button
+            className="ea-account"
+            onClick={openSettings}
+            aria-label="企业设置"
+            title="企业设置"
+          >
+            <span className="ea-account-copy">
+              <strong>{enterprise.name.replace("（虚拟企业）", "")}</strong>
+              <small>{user ? "企业账号" : "演示企业 · 免注册"}</small>
+            </span>
+            <span className="ea-avatar">
+              M<span />
+            </span>
+          </button>
+          <ViewSwitch active="enterprise" />
+        </div>
       </header>
       <main className="ea-main">
         <div className="ea-page-heading">
@@ -498,7 +520,7 @@ export function EnterpriseAtlas() {
               </span>
               <span>
                 <i />
-                政策与技术信号
+                政策与技术信号（数字为条数）
               </span>
               <span>
                 <i />
@@ -509,7 +531,7 @@ export function EnterpriseAtlas() {
           <div className="ea-map-bottom">
             <I name="info" size={13} />
             <span>
-              地图展示治理关系与业务观察视角；服务可用性按供应商地区、所有权、终端用户和合同条件单独核验。
+              蓝色与琥珀色圆点为关联动态，点击查看来源；国家后的数字为动态条数。服务可用性按供应商地区、所有权、终端用户和合同条件单独核验。
             </span>
           </div>
         </section>

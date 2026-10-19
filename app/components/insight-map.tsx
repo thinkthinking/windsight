@@ -217,9 +217,26 @@ export function InsightMap({
                     }
                   }}
                 >
-                  <circle className="event-hit-area" r="16" />
-                  <circle className="event-halo" r={active ? 15 : 11} />
-                  <circle className="event-core" r={active ? 7 : 5} />
+                  <circle
+                    className="event-hit-area"
+                    r="16"
+                    fill="transparent"
+                  />
+                  <circle
+                    className="event-halo"
+                    r={active ? 15 : 11}
+                    fill="#dceafa"
+                    fillOpacity="0.55"
+                    stroke="#90b6df"
+                    strokeWidth="0.8"
+                  />
+                  <circle
+                    className="event-core"
+                    r={active ? 7 : 5}
+                    fill="#4e8ac9"
+                    stroke="#ffffff"
+                    strokeWidth="1.3"
+                  />
                   <text x="13" y="4">
                     {event.countryName}
                     {group.length > 1 ? ` ${group.length}` : ""}
