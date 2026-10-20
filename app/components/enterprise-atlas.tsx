@@ -1,7 +1,21 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+} from "react";
 import Link from "next/link";
+import {
+  CircleCheck,
+  Download,
+  Info,
+  Search,
+  ShieldAlert,
+} from "lucide-react";
 import {
   countries,
   signals as seeds,
@@ -9,11 +23,27 @@ import {
   type Country,
 } from "@/lib/data";
 import latestEvents from "@/docs/latest-ai-events.json";
-import { businessRisks } from "@/lib/business-risks";
-import { InsightMap } from "./insight-map";
+import { businessRisks, type BusinessRisk } from "@/lib/business-risks";
+import { AtlasMap, type MapFocus, type MapTone } from "./atlas-map";
+import {
+  CountryDetail,
+  EventDetail,
+  EventList,
+  Kpi,
+  Segmented,
+  SheetBar,
+  SourceLinks,
+  TimeStrip,
+  dateParts,
+  eventOrganizations,
+  isTyping,
+  monthLabel,
+  toneOfOrgs,
+} from "./atlas-ui";
 import { I, WindLogo } from "./insight-icons";
 import { BrandLogo } from "./brand-logo";
 import { ViewSwitch } from "./view-switch";
+import "./public-tracker.css";
 import "./enterprise-atlas.css";
 
 type Business = {
@@ -141,15 +171,40 @@ async function api(path: string, body?: unknown) {
   return data;
 }
 
+type View =
+  | { kind: "list" }
+  | { kind: "event"; id: string }
+  | { kind: "country"; code: string }
+  | { kind: "risk"; id: string };
+type DetailView = Exclude<View, { kind: "list" }>;
+type NavDir = "forward" | "back" | "next" | "prev";
+type RailTab = "risks" | "events";
+
+const ALL_MARKETS = "全部市场";
+const ALL_BUSINESS = "all";
+/** Map focus for a market (EU has no single country geometry). */
+const marketFocus: Record<string, string> = { 欧盟: "DE", 东南亚: "SG", 中东: "SA" };
+
+function providerName(name: string) {
+  return /gpt|openai/i.test(name)
+    ? "GPT"
+    : /claude|anthropic/i.test(name)
+      ? "Claude"
+      : /qwen/i.test(name)
+        ? "Qwen"
+        : /deepseek/i.test(name)
+          ? "DeepSeek"
+          : /gemini/i.test(name)
+            ? "Gemini"
+            : /mistral/i.test(name)
+              ? "Mistral"
+              : name;
+}
+
 export function EnterpriseAtlas() {
   const [enterprise, setEnterprise] = useState<Enterprise>(defaultEnterprise);
   const [draft, setDraft] = useState<Enterprise>(defaultEnterprise);
   const [feed, setFeed] = useState<Signal[]>(initialFeed);
-  const [activeMarket, setActiveMarket] = useState("全部市场");
-  const [selected, setSelected] = useState<Country>(
-    () => countries.find((c) => c.code === "SG") || countries[0],
-  );
-  const [event, setEvent] = useState<Signal | null>(null);
   const [settings, setSettings] = useState(false);
   const [activeBusiness, setActiveBusiness] = useState("model-api");
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
@@ -157,6 +212,18 @@ export function EnterpriseAtlas() {
   const [message, setMessage] = useState("");
   const [login, setLogin] = useState(false);
   const [authMessage, setAuthMessage] = useState("");
+
+  const [scope, setScope] = useState<string>(ALL_BUSINESS);
+  const [activeMarket, setActiveMarket] = useState(ALL_MARKETS);
+  const [month, setMonth] = useState<string | null>(null);
+  const [tab, setTab] = useState<RailTab>("risks");
+  const [stack, setStack] = useState<View[]>([{ kind: "list" }]);
+  const [closing, setClosing] = useState<DetailView | null>(null);
+  const [navDir, setNavDir] = useState<NavDir>("forward");
+  const [focus, setFocus] = useState<MapFocus>(null);
+  const [hotCode, setHotCode] = useState<string | null>(null);
+  const focusSeq = useRef(0);
+
   useEffect(() => {
     let cancelled = false;
     queueMicrotask(() => {
@@ -205,6 +272,9 @@ export function EnterpriseAtlas() {
     const timer = setTimeout(() => setMessage(""), 5000);
     return () => clearTimeout(timer);
   }, [message]);
+
+  /* ---------- derived ---------- */
+
   const markets = Array.from(
     new Set([
       ...enterprise.markets,
@@ -212,50 +282,62 @@ export function EnterpriseAtlas() {
     ]),
   );
   const providers = Array.from(
-    new Set(
-      enterprise.businesses
-        .flatMap((b) => b.models)
-        .map((name) =>
-          /gpt|openai/i.test(name)
-            ? "GPT"
-            : /claude|anthropic/i.test(name)
-              ? "Claude"
-              : /qwen/i.test(name)
-                ? "Qwen"
-                : /deepseek/i.test(name)
-                  ? "DeepSeek"
-                  : /gemini/i.test(name)
-                    ? "Gemini"
-                    : /mistral/i.test(name)
-                      ? "Mistral"
-                      : name,
-        ),
-    ),
+    new Set(enterprise.businesses.flatMap((b) => b.models).map(providerName)),
   ).slice(0, 6);
-  const selectedCodes =
-    activeMarket === "全部市场"
-      ? markets.flatMap((m) => marketCodes[m] || [])
-      : marketCodes[activeMarket] || [];
-  const relevantEvents = feed.filter((item) =>
-    selectedCodes.includes(item.country),
+  const scopeBusiness =
+    scope === ALL_BUSINESS
+      ? undefined
+      : enterprise.businesses.find((b) => b.id === scope);
+  const scopeMarkets = scopeBusiness ? scopeBusiness.markets : markets;
+  const scopeProviders = scopeBusiness
+    ? Array.from(new Set(scopeBusiness.models.map(providerName)))
+    : providers;
+  const market = scopeMarkets.includes(activeMarket) ? activeMarket : ALL_MARKETS;
+  const marketCodeList = useMemo(
+    () =>
+      market === ALL_MARKETS
+        ? scopeMarkets.flatMap((m) => marketCodes[m] || [])
+        : marketCodes[market] || [],
+    [market, scopeMarkets],
   );
-  const displayedEvents = relevantEvents.slice(0, 7);
-  const priorityRiskIds = [
-    "openai-unsupported-cn-ru",
-    "anthropic-regions-control",
-    "china-public-generative-ai",
-  ];
-  const risks = priorityRiskIds
-    .flatMap((id) => businessRisks.filter((risk) => risk.id === id))
+  const scopeCodeSet = useMemo(
+    () => new Set(scopeMarkets.flatMap((m) => marketCodes[m] || [])),
+    [scopeMarkets],
+  );
+  const homeCodes = marketCodes[enterprise.headquarters] || [];
+  const homeCode =
+    enterprise.headquarters === "欧盟" ? undefined : homeCodes[0];
+
+  const countryMap = useMemo(
+    () => new Map(countries.map((c) => [c.code, c])),
+    [],
+  );
+  const orgsOf = (item: Signal) => eventOrganizations(item, countryMap);
+  const eventTone = (item: Signal) => toneOfOrgs(orgsOf(item));
+
+  const scopedEvents = useMemo(
+    () =>
+      feed
+        .filter((item) => marketCodeList.includes(item.country))
+        .sort((a, b) => b.date.localeCompare(a.date)),
+    [feed, marketCodeList],
+  );
+  const visibleEvents = month
+    ? scopedEvents.filter((item) => dateParts(item.date).ym === month)
+    : scopedEvents;
+  const displayedEvents = visibleEvents.slice(0, 7);
+
+  const riskMarkets = market === ALL_MARKETS ? scopeMarkets : [market];
+  const risks = businessRisks
     .filter(
       (risk) =>
         risk.markets.some(
-          (market) => markets.includes(market) || market === "全球",
+          (m) => riskMarkets.includes(m) || m === "全球",
         ) &&
         risk.providers.some(
           (provider) =>
             provider === "其他模型" ||
-            providers.some(
+            scopeProviders.some(
               (name) =>
                 name.toLowerCase().includes(provider.toLowerCase()) ||
                 (provider === "OpenAI" && name === "GPT") ||
@@ -263,7 +345,127 @@ export function EnterpriseAtlas() {
             ),
         ),
     )
-    .slice(0, 3);
+    .sort((a, b) =>
+      a.severity === b.severity ? 0 : a.severity === "high" ? -1 : 1,
+    );
+  const highRisks = risks.filter((risk) => risk.severity === "high").length;
+
+  const toneFor = (country: Country): MapTone | null =>
+    homeCodes.includes(country.code)
+      ? "home"
+      : scopeCodeSet.has(country.code)
+        ? "market"
+        : null;
+
+  /* ---------- navigation ---------- */
+
+  const top = stack[stack.length - 1];
+  const sheetView: DetailView | null = top.kind !== "list" ? top : closing;
+  const sheetOpen = top.kind !== "list";
+  const eventById = new Map(feed.map((item) => [item.id, item]));
+  const riskById = new Map(businessRisks.map((risk) => [risk.id, risk]));
+  const activeEvent = top.kind === "event" ? eventById.get(top.id) : undefined;
+  const below = stack[stack.length - 2];
+  const parentCountry =
+    top.kind === "event" && below?.kind === "country" ? below.code : null;
+  const sequence = parentCountry
+    ? visibleEvents.filter((item) => item.country === parentCountry)
+    : visibleEvents;
+  const position = activeEvent
+    ? sequence.findIndex((item) => item.id === activeEvent.id)
+    : -1;
+  const selectedCode =
+    top.kind === "event"
+      ? (activeEvent?.country ?? null)
+      : top.kind === "country"
+        ? top.code
+        : null;
+  const highlightedId =
+    top.kind === "event" ? top.id : closing?.kind === "event" ? closing.id : "";
+  const highlightedRisk =
+    top.kind === "risk" ? top.id : closing?.kind === "risk" ? closing.id : "";
+
+  const flyTo = (code: string, intent: "event" | "country") => {
+    focusSeq.current += 1;
+    setFocus({ code, intent, seq: focusSeq.current });
+  };
+  const openDetail = (view: DetailView, keepParent = false) => {
+    setClosing(null);
+    setNavDir("forward");
+    setStack((prev) =>
+      keepParent && prev[prev.length - 1]?.kind === "country"
+        ? [...prev, view]
+        : [{ kind: "list" }, view],
+    );
+  };
+  const openEvent = (item: Signal, fromCountry = false) => {
+    openDetail({ kind: "event", id: item.id }, fromCountry);
+    flyTo(item.country, "event");
+  };
+  const openCountry = (code: string) => {
+    openDetail({ kind: "country", code });
+    flyTo(code, "country");
+  };
+  const openRisk = (risk: BusinessRisk) => openDetail({ kind: "risk", id: risk.id });
+  const step = (delta: 1 | -1) => {
+    const next = sequence[position + delta];
+    if (!next) return;
+    setNavDir(delta > 0 ? "next" : "prev");
+    setStack((prev) => [...prev.slice(0, -1), { kind: "event", id: next.id }]);
+    flyTo(next.country, "event");
+  };
+  const back = () => {
+    if (stack.length <= 1) return;
+    const nextStack = stack.slice(0, -1);
+    const nextTop = nextStack[nextStack.length - 1];
+    setNavDir("back");
+    if (nextTop.kind === "list" && top.kind !== "list") {
+      setClosing(top);
+      if (top.kind !== "risk") setFocus(marketFocusFor(market));
+    } else if (nextTop.kind === "country") {
+      flyTo(nextTop.code, "country");
+    }
+    setStack(nextStack);
+  };
+  function marketFocusFor(next: string): MapFocus {
+    if (next === ALL_MARKETS) return null;
+    const code = marketFocus[next] ?? marketCodes[next]?.[0];
+    focusSeq.current += 1;
+    return code ? { code, intent: "country", seq: focusSeq.current } : null;
+  }
+  function selectMarket(next: string) {
+    setActiveMarket(next);
+    setMonth(null);
+    setStack([{ kind: "list" }]);
+    setClosing(null);
+    setFocus(marketFocusFor(next));
+  }
+  function selectScope(next: string) {
+    setScope(next);
+    setActiveMarket(ALL_MARKETS);
+    setMonth(null);
+    setStack([{ kind: "list" }]);
+    setClosing(null);
+    setFocus(null);
+  }
+
+  // Esc closes details; ←/→ steps through events.
+  const keyHandler = useRef<(event: KeyboardEvent) => void>(() => {});
+  useEffect(() => {
+    keyHandler.current = (event) => {
+      if (settings || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.key === "Escape" && sheetOpen) back();
+      if (isTyping(event.target) || top.kind !== "event") return;
+      if (["ArrowRight", "j"].includes(event.key)) step(1);
+      if (["ArrowLeft", "k"].includes(event.key)) step(-1);
+    };
+  });
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => keyHandler.current(event);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   const draftBusiness =
     draft.businesses.find((b) => b.id === activeBusiness) ||
     draft.businesses[0];
@@ -272,13 +474,6 @@ export function EnterpriseAtlas() {
     setActiveBusiness(enterprise.businesses[0]?.id || "");
     setSettings(true);
     setLogin(false);
-  }
-  function selectMarket(market: string) {
-    setActiveMarket(market);
-    const code = market === "欧盟" ? "DE" : marketCodes[market]?.[0];
-    const country = countries.find((c) => c.code === code);
-    if (country) setSelected(country);
-    setEvent(null);
   }
   function updateBusiness(patch: Partial<Business>) {
     if (!draftBusiness) return;
@@ -396,16 +591,40 @@ export function EnterpriseAtlas() {
     link.click();
     URL.revokeObjectURL(url);
   }
+
+  const businessOptions = [
+    { key: ALL_BUSINESS, label: "全部业务" },
+    ...enterprise.businesses.map((b) => ({ key: b.id, label: b.name })),
+  ];
+  const marketOptions_ = [
+    { key: ALL_MARKETS, label: ALL_MARKETS },
+    ...scopeMarkets.map((m) => ({
+      key: m,
+      label: m,
+      tone: homeCodes.some((c) => (marketCodes[m] || []).includes(c))
+        ? "home"
+        : undefined,
+    })),
+  ];
+  const name = enterprise.name.replace("（虚拟企业）", "");
+
   return (
-    <div className="enterprise-atlas">
-      <header className="ea-header">
-        <Link href="/" className="ea-brand">
+    <div className="pt pt-enterprise" data-sheet={sheetOpen ? "open" : "closed"}>
+      <header className="pt-header">
+        <Link href="/" className="pt-brand" aria-label="windsight 观风首页">
           <WindLogo />
-          <span>
-            观风 <b>windsight</b>
-          </span>
+          <strong>
+            windsight<span>观风</span>
+          </strong>
         </Link>
-        <div className="ea-header-actions">
+        <div className="pt-header-title">
+          <h1>企业视角</h1>
+          <span>
+            {name} · 注册地 {enterprise.headquarters} ·{" "}
+            {user ? "企业工作空间" : "虚拟企业演示"}
+          </span>
+        </div>
+        <div className="pt-header-actions">
           <button
             className="ea-account"
             onClick={openSettings}
@@ -413,7 +632,7 @@ export function EnterpriseAtlas() {
             title="企业设置"
           >
             <span className="ea-account-copy">
-              <strong>{enterprise.name.replace("（虚拟企业）", "")}</strong>
+              <strong>{name}</strong>
               <small>{user ? "企业账号" : "演示企业 · 免注册"}</small>
             </span>
             <span className="ea-avatar">
@@ -423,254 +642,293 @@ export function EnterpriseAtlas() {
           <ViewSwitch active="enterprise" />
         </div>
       </header>
-      <main className="ea-main">
-        <div className="ea-page-heading">
-          <div>
-            <p className="ea-kicker">
-              <span />
-              企业 AI 战略视野
-            </p>
-            <h1>全球风向，你的业务坐标。</h1>
-            <p>连接模型服务、数据流动与政策变化，理解每一步业务决策。</p>
-          </div>
-          <div className="ea-head-note">
-            <span className="ea-status-light" />
-            {user ? "企业工作空间" : "虚拟企业演示"}
-            <small>资料每 60 秒同步 · 来源可追溯</small>
-          </div>
+
+      <div className="pt-toolbar" role="toolbar" aria-label="业务与市场">
+        {enterprise.businesses.length > 1 ? (
+          <Segmented
+            label="业务场景"
+            value={scopeBusiness ? scope : ALL_BUSINESS}
+            options={businessOptions}
+            onChange={selectScope}
+          />
+        ) : null}
+        <Segmented
+          label="关注市场"
+          value={market}
+          options={marketOptions_}
+          onChange={selectMarket}
+        />
+        {month ? (
+          <button
+            className="pt-chip"
+            onClick={() => setMonth(null)}
+            aria-label={`清除月份筛选 ${monthLabel(month)}`}
+          >
+            {monthLabel(month)} ×
+          </button>
+        ) : null}
+        <div className="pt-models" aria-label="模型依赖">
+          <span>模型依赖</span>
+          {scopeProviders.map((provider) => (
+            <span key={provider} title={provider} className="pt-model">
+              <BrandLogo name={provider} size={17} />
+            </span>
+          ))}
         </div>
-        <section className="ea-map-section">
-          <div className="ea-map-caption">
-            <div>
-              <span className="ea-map-label">
-                {enterprise.name.replace("（虚拟企业）", "")}
-              </span>
-              <h2>企业全球业务版图</h2>
-              <p>
-                <span className="ea-home-dot" />
-                注册地 {enterprise.headquarters}
-                <span className="ea-small-divider" />
-                {enterprise.businesses.length} 项业务场景
-                <span className="ea-small-divider" />
-                {markets.length} 个关注市场
-              </p>
-            </div>
-            <div className="ea-provider-row">
-              <span>主要模型</span>
-              {providers.map((name) => (
-                <span key={name} title={name}>
-                  <BrandLogo name={name} size={23} />
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="ea-market-tabs">
-            <button
-              className={activeMarket === "全部市场" ? "active" : ""}
-              onClick={() => selectMarket("全部市场")}
-            >
-              全部市场
-            </button>
-            {markets.map((m) => (
-              <button
-                className={activeMarket === m ? "active" : ""}
-                onClick={() => selectMarket(m)}
-                key={m}
-              >
-                <span
-                  className={`ea-market-dot ${m === "新加坡" ? "registered" : ""}`}
-                />
-                {m}
-                {m === "新加坡" && <small>注册地</small>}
-              </button>
-            ))}
-          </div>
-          <div className="ea-map-body">
-            <InsightMap
-              countries={countries.filter((country) =>
-                markets
-                  .flatMap((m) => marketCodes[m] || [])
-                  .includes(country.code),
-              )}
-              selected={selected}
-              onSelect={(country) => {
-                setSelected(country);
-                const market = markets.find((m) =>
-                  marketCodes[m]?.includes(country.code),
-                );
-                if (market) setActiveMarket(market);
-              }}
-              bloc="全部"
-              onBloc={() => {}}
-              events={relevantEvents}
-              selectedEvent={event?.id}
-              onSelectEvent={setEvent}
-            />
-            {enterprise.headquarters === "新加坡" && (
-              <div className="ea-registration-pin">
-                <span />
-                <strong>新加坡</strong>
-                <small>企业注册地</small>
-              </div>
-            )}
-            <div className="ea-map-legend">
-              <span>
-                <i />
-                企业关注市场
-              </span>
-              <span>
-                <i />
-                政策与技术信号（数字为条数）
-              </span>
-              <span>
-                <i />
-                注册地
-              </span>
-            </div>
-          </div>
-          <div className="ea-map-bottom">
-            <I name="info" size={13} />
+        <button className="pt-action" onClick={exportBrief}>
+          <Download size={14} aria-hidden />
+          导出简报
+        </button>
+      </div>
+
+      <main className="pt-body">
+        <section className="pt-stage" aria-label="企业业务版图">
+          <div className="pt-stage-legend pt-stage-legend--static">
             <span>
-              蓝色与琥珀色圆点为关联动态，点击查看来源；国家后的数字为动态条数。服务可用性按供应商地区、所有权、终端用户和合同条件单独核验。
+              <i className="pt-dot tone-market" />
+              关注市场 <b>{scopeMarkets.length}</b>
+            </span>
+            <span>
+              <i className="pt-dot tone-home" />
+              注册地
+            </span>
+            <span>
+              <i className="pt-dot tone-gpai" />
+              政策信号 · 数字为条数
             </span>
           </div>
+          <AtlasMap
+            countries={countries}
+            events={visibleEvents}
+            bloc="全部"
+            emphasis={null}
+            focus={focus}
+            selectedCode={selectedCode}
+            hotCode={hotCode}
+            onCountry={(code) => {
+              const list = visibleEvents.filter((e) => e.country === code);
+              if (list.length === 1 && !countryMap.has(code)) openEvent(list[0]);
+              else openCountry(code);
+              setTab("events");
+            }}
+            onHoverCode={setHotCode}
+            eventOrgTone={eventTone}
+            toneFor={toneFor}
+            homeCode={homeCode}
+          />
+          <div className="pt-stage-foot">
+            <span className="pt-stage-note">
+              <Info size={13} aria-hidden />
+              服务可用性按供应商地区、所有权、终端用户和合同条件单独核验
+            </span>
+          </div>
+          <TimeStrip
+            events={scopedEvents}
+            toneOf={eventTone}
+            month={month}
+            onMonth={(ym) => {
+              setMonth(ym);
+              setTab("events");
+            }}
+            markMonth={activeEvent ? dateParts(activeEvent.date).ym : null}
+          />
         </section>
-        {event && (
-          <div className="ea-selected-event">
-            <span>{event.date}</span>
-            <strong>{event.title}</strong>
-            <span
-              className={
-                event.status === "已核实" ? "ea-verified" : "ea-pending"
-              }
-            >
-              {event.status}
-            </span>
-            <a href={event.sourceUrl} target="_blank" rel="noopener noreferrer">
-              原始来源
-              <I name="external" size={12} />
-            </a>
-            <button aria-label="关闭所选信息" onClick={() => setEvent(null)}>
-              <I name="close" size={14} />
-            </button>
-          </div>
-        )}
-        <div className="ea-insights-grid">
-          <section className="ea-timeline">
-            <div className="ea-section-heading">
-              <div>
-                <h2>
-                  <I name="radar" size={17} />
-                  相关市场风向
-                </h2>
-                <p>
-                  {activeMarket === "全部市场" ? "关注市场" : activeMarket}
-                  的政策、产品与服务条件变化
-                </p>
-              </div>
-              <span>{relevantEvents.length} 条关联资料</span>
+
+        <aside className="pt-rail" aria-label="业务暴露与决策提示">
+          <div
+            className="pt-rail-base"
+            aria-hidden={sheetOpen || undefined}
+            inert={sheetOpen || undefined}
+          >
+            <div className="pt-kpis">
+              <Kpi label="关联动态" value={visibleEvents.length} />
+              <Kpi label="关注市场" value={scopeMarkets.length} />
+              <Kpi label="决策提示" value={risks.length} />
+              <Kpi label="高优先级" value={highRisks} tone="warn" />
             </div>
-            <div className="ea-timeline-list">
-              {displayedEvents.length ? (
-                displayedEvents.map((item) => (
-                  <button
-                    className={`ea-timeline-event ${event?.id === item.id ? "selected" : ""}`}
-                    key={item.id}
-                    onClick={() => setEvent(item)}
-                  >
-                    <span className="ea-timeline-dot" />
-                    <time>{item.date}</time>
-                    <div>
-                      <div className="ea-timeline-meta">
-                        <span>{item.countryName}</span>
-                        <span>{item.category}</span>
-                        <span
-                          className={
-                            item.status === "已核实"
-                              ? "ea-verified"
-                              : "ea-pending"
-                          }
+            <div className="pt-scope">
+              <div className="pt-scope-head">
+                <strong>{scopeBusiness ? scopeBusiness.name : name}</strong>
+                {scopeBusiness ? (
+                  <em className="pt-neutral">{scopeBusiness.stage}</em>
+                ) : (
+                  <em className="pt-neutral">
+                    {enterprise.businesses.length} 项业务
+                  </em>
+                )}
+                <button onClick={openSettings}>编辑</button>
+              </div>
+              <p>
+                {scopeBusiness
+                  ? scopeBusiness.description || "尚未填写业务描述。"
+                  : enterprise.description}
+              </p>
+              {scopeBusiness?.dataTypes.length ? (
+                <div className="pt-tags">
+                  {scopeBusiness.dataTypes.map((item) => (
+                    <span key={item}>{item}</span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            <div className="pt-rail-tabs">
+              <Segmented
+                label="右侧内容"
+                value={tab}
+                options={[
+                  {
+                    key: "risks",
+                    label: "决策提示",
+                    badge: <em className="pt-badge">{risks.length}</em>,
+                  },
+                  {
+                    key: "events",
+                    label: "市场风向",
+                    badge: (
+                      <em className="pt-badge">{visibleEvents.length}</em>
+                    ),
+                  },
+                ]}
+                onChange={setTab}
+              />
+            </div>
+            <div className="pt-list" key={`${tab}|${scope}|${market}|${month ?? ""}`}>
+              {tab === "risks" ? (
+                risks.length ? (
+                  <ol className="pt-risks">
+                    {risks.map((risk, index) => (
+                      <li key={risk.id} style={{ "--i": index } as CSSProperties}>
+                        <button
+                          className={`pt-risk ${risk.severity === "high" ? "is-high" : ""} ${highlightedRisk === risk.id ? "is-active" : ""}`}
+                          onClick={() => openRisk(risk)}
                         >
-                          {item.status}
-                        </span>
-                      </div>
-                      <h3>{item.title}</h3>
-                      <p>{item.implication}</p>
-                      <span className="ea-event-source">
-                        {item.source}
-                        <I name="external" size={10} />
-                      </span>
-                    </div>
-                  </button>
-                ))
+                          <span className="pt-risk-meta">
+                            <em
+                              className={
+                                risk.severity === "high"
+                                  ? "pt-pending"
+                                  : "pt-neutral"
+                              }
+                            >
+                              {risk.status}
+                            </em>
+                            <span>
+                              {risk.markets
+                                .filter((m) => markets.includes(m))
+                                .slice(0, 3)
+                                .join(" · ") || "全球"}
+                            </span>
+                          </span>
+                          <strong>{risk.title}</strong>
+                          <span className="pt-row-summary">
+                            {risk.action}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                    <li className="pt-boundary">
+                      供应商限制与政府法规分别判断；当前视图采用规则匹配，不构成法律意见。
+                    </li>
+                  </ol>
+                ) : (
+                  <div className="pt-empty">
+                    <CircleCheck size={22} aria-hidden />
+                    <h3>当前范围暂无匹配提示</h3>
+                    <p>没有匹配不代表没有风险，请结合合同与供应商条款复核。</p>
+                  </div>
+                )
+              ) : visibleEvents.length ? (
+                <EventList
+                  events={visibleEvents}
+                  orgsOf={orgsOf}
+                  highlightedId={highlightedId}
+                  onOpen={(item) => openEvent(item)}
+                  onHover={setHotCode}
+                />
               ) : (
-                <div className="ea-empty">
-                  <I name="radar" size={25} />
-                  <p>该市场暂未收录可展示信号。没有新资料不代表没有变化。</p>
+                <div className="pt-empty">
+                  <Search size={22} aria-hidden />
+                  <h3>该市场暂未收录信号</h3>
+                  <p>没有新资料不代表没有变化。</p>
                 </div>
               )}
             </div>
-          </section>
-          <aside className="ea-decisions">
-            <div className="ea-section-heading">
-              <div>
-                <h2>
-                  <I name="spark" size={17} />
-                  企业决策提示
-                </h2>
-                <p>结合业务场景与供应商官方规则</p>
+          </div>
+
+          <div
+            className={`pt-sheet ${sheetOpen ? "is-open" : ""}`}
+            aria-hidden={!sheetOpen}
+            inert={!sheetOpen || undefined}
+            onTransitionEnd={(e) => {
+              if (e.target === e.currentTarget && !sheetOpen) setClosing(null);
+            }}
+          >
+            {sheetView ? (
+              <div
+                className="pt-sheet-inner"
+                key={`${sheetView.kind}-${"id" in sheetView ? sheetView.id : sheetView.code}`}
+                data-dir={navDir}
+              >
+                {sheetView.kind === "event" ? (
+                  (() => {
+                    const item = eventById.get(sheetView.id);
+                    return (
+                      <EventDetail
+                        event={item}
+                        country={countryMap.get(item?.country ?? "")}
+                        orgs={item ? orgsOf(item) : []}
+                        backLabel={
+                          parentCountry
+                            ? (countryMap.get(parentCountry)?.name ?? "国家")
+                            : "市场风向"
+                        }
+                        position={position}
+                        total={sequence.length}
+                        onBack={back}
+                        onStep={step}
+                        onCountry={openCountry}
+                        related={visibleEvents
+                          .filter(
+                            (e) => e.country === item?.country && e.id !== item?.id,
+                          )
+                          .slice(0, 3)}
+                        onOpenRelated={(next) => {
+                          setNavDir("next");
+                          setStack((prev) => [
+                            ...prev.slice(0, -1),
+                            { kind: "event", id: next.id },
+                          ]);
+                        }}
+                      />
+                    );
+                  })()
+                ) : sheetView.kind === "country" ? (
+                  <CountryDetail
+                    code={sheetView.code}
+                    country={countryMap.get(sheetView.code)}
+                    events={visibleEvents.filter((e) => e.country === sheetView.code)}
+                    orgsOf={orgsOf}
+                    onBack={back}
+                    onOpen={(item) => openEvent(item, true)}
+                    onHover={setHotCode}
+                  />
+                ) : (
+                  <RiskDetail
+                    risk={riskById.get(sheetView.id)}
+                    enterpriseMarkets={markets}
+                    onBack={back}
+                  />
+                )}
               </div>
-              <button onClick={exportBrief} title="导出有来源的决策简报">
-                <I name="download" size={16} />
-              </button>
-            </div>
-            <div className="ea-risk-list">
-              {risks.map((risk, index) => (
-                <article className="ea-risk-card" key={risk.id}>
-                  <div className="ea-risk-top">
-                    <span
-                      className={risk.severity === "high" ? "high" : "medium"}
-                    >
-                      {risk.status}
-                    </span>
-                    <small>{String(index + 1).padStart(2, "0")}</small>
-                  </div>
-                  <h3>{risk.title}</h3>
-                  <p>{risk.summary.split("。")[0]}。</p>
-                  <div className="ea-risk-action">
-                    <I name="check" size={13} />
-                    <span>{risk.action}</span>
-                  </div>
-                  <div className="ea-risk-sources">
-                    {risk.sources.map((source) => (
-                      <a
-                        key={source.url}
-                        href={source.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {source.title}
-                        <I name="external" size={10} />
-                      </a>
-                    ))}
-                  </div>
-                </article>
-              ))}
-            </div>
-            <p className="ea-boundary">
-              <I name="info" size={13} />
-              供应商限制与政府法规分别判断，不将外部模型概括为“进口禁止”。当前视图采用规则匹配，不构成法律意见。
-            </p>
-          </aside>
-        </div>
-        <footer className="ea-footer">
-          <span>
-            windsight 观风<span>观全球风向，知企业进退。</span>
-          </span>
-          <span>
-            {user ? "真实企业空间" : "演示资料与设置仅保存在本浏览器"}
-          </span>
-        </footer>
+            ) : null}
+          </div>
+        </aside>
+        <button
+          className="pt-scrim"
+          aria-label="关闭详情"
+          tabIndex={sheetOpen ? 0 : -1}
+          onClick={back}
+        />
       </main>
       {message && (
         <div className="ea-toast" role="status">
@@ -996,5 +1254,71 @@ export function EnterpriseAtlas() {
         </div>
       )}
     </div>
+  );
+}
+
+function RiskDetail({
+  risk,
+  enterpriseMarkets,
+  onBack,
+}: {
+  risk?: BusinessRisk;
+  enterpriseMarkets: string[];
+  onBack: () => void;
+}) {
+  if (!risk)
+    return (
+      <>
+        <SheetBar label="决策提示" onBack={onBack} />
+        <div className="pt-empty">
+          <h3>该提示已不在当前规则中</h3>
+        </div>
+      </>
+    );
+  return (
+    <>
+      <SheetBar label="决策提示" onBack={onBack} />
+      <article className="pt-detail">
+        <div className="pt-detail-date">
+          <span className="pt-risk-level">
+            <ShieldAlert size={16} aria-hidden />
+            {risk.severity === "high" ? "高优先级" : "需关注"}
+          </span>
+          <span className="pt-detail-cat">{risk.status}</span>
+        </div>
+        <h2>{risk.title}</h2>
+        <div className="pt-detail-meta">
+          {risk.markets.map((m) => (
+            <span key={m} className={enterpriseMarkets.includes(m) ? "is-match" : ""}>
+              {m}
+            </span>
+          ))}
+        </div>
+        <p className="pt-detail-summary">{risk.summary}</p>
+        <div className="pt-implication">
+          <h3>
+            <CircleCheck size={14} aria-hidden />
+            建议行动
+          </h3>
+          <p>{risk.action}</p>
+        </div>
+        <h3 className="pt-detail-h">涉及供应商</h3>
+        <div className="pt-tags">
+          {risk.providers.map((provider) => (
+            <span key={provider} className="pt-provider">
+              {provider !== "其他模型" ? (
+                <BrandLogo name={provider} size={13} />
+              ) : null}
+              {provider}
+            </span>
+          ))}
+        </div>
+        <h3 className="pt-detail-h">来源</h3>
+        <SourceLinks links={risk.sources} />
+        <p className="pt-detail-quiet">
+          以上为规则辅助筛查，请以供应商现行条款与法律意见为准。
+        </p>
+      </article>
+    </>
   );
 }
