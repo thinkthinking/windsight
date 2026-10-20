@@ -844,6 +844,7 @@
   position: relative;
   flex: 1 1 0;
   min-width: 0;
+  height: 100%;
   display: grid;
   grid-template-rows: minmax(0, 1fr) 14px;
   gap: 3px;
@@ -855,6 +856,9 @@
 }
 .pt-bar-track {
   position: relative;
+  /* Safari needs an explicit grid-track height for the percentage-height fill. */
+  height: 100%;
+  min-height: 0;
   border-radius: 4px;
   background: #f3f6fa;
   transition: background 0.2s;
@@ -873,8 +877,7 @@
   transition:
     height 0.55s var(--ease-out),
     background 0.2s;
-  animation: pt-grow 0.7s var(--ease-out) both;
-  animation-delay: calc(var(--i, 0) * 16ms + 200ms);
+  /* Keep data visible without relying on Safari completing the entrance animation. */
 }
 .pt-bar:not(:disabled):hover .pt-bar-track {
   background: #eaf0f8;

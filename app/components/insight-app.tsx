@@ -425,6 +425,25 @@ function readDemoProfile(): Profile {
             ? b.stage
             : "规划中",
         }));
+    if (
+      ["中国", "新加坡"].includes(profile.headquarters) &&
+      /^中国团队在新加坡注册的(?:全球化|虚拟) AI 聚合平台，/.test(
+        profile.description,
+      )
+    ) {
+      profile.headquarters = "中国";
+      profile.description = profile.description.replace(
+        "在新加坡注册",
+        "在中国注册",
+      );
+      profile.businesses = profile.businesses.map((business: Business) => ({
+        ...business,
+        description: business.description.replace(
+          "中国团队、新加坡注册主体",
+          "中国团队、中国注册主体",
+        ),
+      }));
+    }
     return profile;
   } catch {
     return { ...exampleProfile };

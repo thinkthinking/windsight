@@ -143,6 +143,7 @@ function readDemo(): Enterprise {
       .filter((b: Business) => b && typeof b.name === "string")
       .map((b: Business) => ({
         ...b,
+        description: typeof b.description === "string" ? b.description : "",
         markets: Array.isArray(b.markets) ? b.markets : [],
         useCases: Array.isArray(b.useCases) ? b.useCases : [],
         dataTypes: Array.isArray(b.dataTypes) ? b.dataTypes : [],
@@ -150,6 +151,25 @@ function readDemo(): Enterprise {
       }));
     if (merged.name.includes("Meridian") && !merged.markets.includes("俄罗斯"))
       merged.markets = [...merged.markets, "俄罗斯"];
+    if (
+      ["中国", "新加坡"].includes(merged.headquarters) &&
+      /^中国团队在新加坡注册的(?:全球化|虚拟) AI 聚合平台，/.test(
+        merged.description,
+      )
+    ) {
+      merged.headquarters = "中国";
+      merged.description = merged.description.replace(
+        "在新加坡注册",
+        "在中国注册",
+      );
+      merged.businesses = merged.businesses.map((business: Business) => ({
+        ...business,
+        description: business.description.replace(
+          "中国团队、新加坡注册主体",
+          "中国团队、中国注册主体",
+        ),
+      }));
+    }
     return merged;
   } catch {
     return structuredClone(defaultEnterprise);
