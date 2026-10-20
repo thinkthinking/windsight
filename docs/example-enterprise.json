@@ -3,7 +3,7 @@
     "name": "Meridian AI（虚拟企业）",
     "website": "",
     "industry": "AI 聚合平台",
-    "headquarters": "新加坡",
+    "headquarters": "中国",
     "markets": [
       "中国",
       "欧盟",
@@ -17,7 +17,7 @@
     ],
     "dataSensitivity": "个人信息",
     "deployment": "混合部署",
-    "description": "中国创始团队在新加坡注册，面向全球开发者提供统一AI模型API、智能路由与用量管理，仅用于比赛的虚拟案例。",
+    "description": "中国创始团队在中国注册，面向全球开发者提供统一AI模型API、智能路由与用量管理，仅用于比赛的虚拟案例。",
     "businesses": [
       {
         "id": "global-api",

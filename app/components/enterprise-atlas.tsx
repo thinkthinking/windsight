@@ -98,13 +98,13 @@ const defaultEnterprise: Enterprise = {
   name: "Meridian AI",
   website: "",
   industry: "AI 聚合平台",
-  headquarters: "新加坡",
+  headquarters: "中国",
   markets: ["中国", "俄罗斯", "新加坡", "欧盟", "美国"],
   useCases: ["模型 API 路由", "企业私有 AI 网关"],
   dataSensitivity: "个人信息",
   deployment: "混合部署",
   description:
-    "中国团队在新加坡注册的虚拟 AI 聚合平台，为全球开发者提供多模型 API 接入、智能路由与区域化私有网关。",
+    "中国团队在中国注册的虚拟 AI 聚合平台，为全球开发者提供多模型 API 接入、智能路由与区域化私有网关。",
   businesses: [
     {
       id: "model-api",
@@ -1083,7 +1083,7 @@ export function EnterpriseAtlas() {
                 </section>
                 <section>
                   <p className="ea-settings-rule-note">
-                    聚合服务另需核验转售授权、终端用户条件与实际数据流。新加坡注册不自动满足所有权、控制关系或数据跨境要求。
+                    聚合服务另需核验转售授权、终端用户条件与实际数据流。中国注册不自动满足所有权、控制关系或数据跨境要求。
                   </p>
                   <div className="ea-settings-section-title">
                     <h3>业务场景</h3>

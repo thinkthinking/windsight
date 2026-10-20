@@ -127,7 +127,7 @@ const demoBusinesses: Business[] = [
     id: "model-api",
     name: "全球模型 API 聚合",
     description:
-      "向全球开发者提供多供应商模型API、智能路由与统一计费；中国团队、新加坡注册主体，终端客户分布在多个地区。",
+      "向全球开发者提供多供应商模型API、智能路由与统一计费；中国团队、中国注册主体，终端客户分布在多个地区。",
     markets: ["中国", "欧盟", "美国", "东南亚"],
     useCases: ["模型 API 路由", "开发者平台", "跨境 AI 服务"],
     dataTypes: ["个人信息", "API 密钥", "日志与调用记录"],
@@ -179,13 +179,13 @@ const exampleProfile: Profile = {
   businesses: demoBusinesses,
   website: "",
   industry: "AI 聚合平台",
-  headquarters: "新加坡",
+  headquarters: "中国",
   markets: ["中国", "欧盟", "美国", "东南亚"],
   useCases: ["模型 API 路由", "开发者平台", "跨境 AI 服务"],
   dataSensitivity: "个人信息",
   deployment: "混合部署",
   description:
-    "中国团队在新加坡注册的全球化 AI 聚合平台，为开发者和企业提供多供应商模型 API 接入、智能路由与统一计费。计划覆盖中国、欧盟、美国和东南亚市场。此为虚拟案例，不代表任何真实企业。",
+    "中国团队在中国注册的全球化 AI 聚合平台，为开发者和企业提供多供应商模型 API 接入、智能路由与统一计费。计划覆盖中国、欧盟、美国和东南亚市场。此为虚拟案例，不代表任何真实企业。",
 };
 const emptyProfile: Profile = {
   name: "",
